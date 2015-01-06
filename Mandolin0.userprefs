@@ -1,0 +1,15 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Mandolin0/Bruteforcer.fs">
+    <Files>
+      <File FileName="Mandolin0/Program.fs" Line="1" Column="1" />
+      <File FileName="Mandolin0/RequestBuilder.fs" Line="1" Column="1" />
+      <File FileName="Mandolin0/TestRequestRepository.fs" Line="17" Column="17" />
+      <File FileName="Mandolin0/Bruteforcer.fs" Line="9" Column="9" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

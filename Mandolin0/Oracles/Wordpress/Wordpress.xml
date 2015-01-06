@@ -1,0 +1,7 @@
+﻿<Oracle>
+	<NegativeMatch>
+		<Text>Incorrect username or password</Text>
+		<Text>403</Text>
+		<Text>417 Expectation Failed</Text>	
+	</NegativeMatch>
+</Oracle>

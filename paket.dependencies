@@ -1,0 +1,7 @@
+source https://nuget.org/api/v2
+
+nuget FSharpx
+nuget FSharpx.Core
+nuget FsPowerPack.Community
+nuget Autofac
+nuget UnionArgParser
