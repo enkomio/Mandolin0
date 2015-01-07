@@ -10,7 +10,7 @@ type TestRequest(username: String, password: String) =
     let readResponseAsText(httpWebResponse: HttpWebResponse) =
         async {
             let sb = new StringBuilder()
-            sb.AppendFormat("{0} {1} {1}", httpWebResponse.StatusCode.ToString(), httpWebResponse.StatusDescription).AppendLine() |> ignore
+            sb.AppendFormat("HTTP/{0} {1} {2}", httpWebResponse.ProtocolVersion.ToString(), int httpWebResponse.StatusCode, httpWebResponse.StatusDescription).AppendLine() |> ignore
 
             // append all headers
             for headerName in httpWebResponse.Headers.AllKeys do
@@ -30,11 +30,11 @@ type TestRequest(username: String, password: String) =
     member val Template = "Default" with get, set
     member val Oracle = "Default" with get, set
     member val Request : HttpWebRequest option = None with get, set 
-    member val Initialize : (unit -> unit) = fun () -> () with get, set
+    member val InitializeBeforeSend : (unit -> unit) = fun () -> () with get, set
 
     member this.Send() =
         async {
-            this.Initialize()
+            this.InitializeBeforeSend()
             let responseText = ref String.Empty
             try
                 let! httpResponse = this.Request.Value.AsyncGetResponse()

@@ -32,5 +32,6 @@ type Oracle(name: String) =
         parseContent(xmlContent)
 
     member this.Verify(html: String) =
-        _positiveTexts |> List.exists(html.Contains) && 
-        _negativeTexts |> List.exists(html.Contains) |> not
+        let positiveMatchSuccess = _positiveTexts |> List.exists(html.Contains)
+        let negativeMatchSuccess = _negativeTexts |> List.exists(html.Contains)
+        positiveMatchSuccess && not negativeMatchSuccess

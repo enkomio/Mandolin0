@@ -6,7 +6,7 @@ open System.IO
 module Configuration =
     let templatesDirectory = "Templates"
     let oraclesDirectory = "Oracles"
-    let timeout = 20000
+    let timeout = 10000
 
     // result codes
     let okResult = 0

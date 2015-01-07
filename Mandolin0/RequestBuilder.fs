@@ -74,13 +74,10 @@ type RequestBuilder(templateRepository: TemplateRepository) =
             // write post data if present
             let data = stringReader.ReadToEnd()
             if not <| String.IsNullOrWhiteSpace(data) then
-                let requestStream = httpWebRequest.GetRequestStream()
-                use streamWriter = new StreamWriter(requestStream)
+                use streamWriter = new StreamWriter(httpWebRequest.GetRequestStream())
                 streamWriter.Write(data)
-                requestStream.Close()
-                streamWriter.Close()
 
             testRequest.Request <- Some httpWebRequest
         
-        testRequest.Initialize <- initializeRequest
+        testRequest.InitializeBeforeSend <- initializeRequest
         testRequest
