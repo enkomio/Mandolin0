@@ -19,7 +19,6 @@
     <Externalconsole>true</Externalconsole>
     <Tailcalls>false</Tailcalls>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>-w "http://www.comune.sora.fr.it/" --template Wordpress  -u "/Users/aparata/Desktop/usernames.txt" --passwords "/Users/aparata/Desktop/passwords.txt"</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugSymbols>false</DebugSymbols>
@@ -30,7 +29,6 @@
     <PlatformTarget>x86</PlatformTarget>
     <Externalconsole>true</Externalconsole>
     <Tailcalls>true</Tailcalls>
-    <Commandlineparameters>-w "http://www.montottone.eu/" --template Wordpress  -u "/Users/aparata/Desktop/usernames.txt" --passwords "/Users/aparata/Desktop/passwords.txt"</Commandlineparameters>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
