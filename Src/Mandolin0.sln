@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Mandolin0", "Mandolin0\Mandolin0.fsproj", "{5D1C770C-3897-45EB-AFA8-3D992C238C90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{695357F1-0369-46E9-8BEF-0E4C7F8FAC5E}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D1C770C-3897-45EB-AFA8-3D992C238C90}.Debug|x86.ActiveCfg = Debug|x86
+		{5D1C770C-3897-45EB-AFA8-3D992C238C90}.Debug|x86.Build.0 = Debug|x86
+		{5D1C770C-3897-45EB-AFA8-3D992C238C90}.Release|x86.ActiveCfg = Release|x86
+		{5D1C770C-3897-45EB-AFA8-3D992C238C90}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Mandolin0\Mandolin0.fsproj
+	EndGlobalSection
+EndGlobal
