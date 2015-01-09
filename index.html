@@ -32,7 +32,18 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction.</h3>
+
+<p>Mandolin0 is a web form bruteforcing tool created with the aims to be very performant and easy to use. It is based on the concept of Template and Oracle, this will help not experienced people to use the tool without the needed knowledge of how to setup the login HTTP Post (this of course isn't an excute to not learn hot the things work).</p>
+
+<p>You can download a compiled version here.</p>
+
+<h3>
+<a id="what-are-template-and-oracle" class="anchor" href="#what-are-template-and-oracle" aria-hidden="true"><span class="octicon octicon-link"></span></a>What are Template and Oracle</h3>
+
+<p><strong>Template</strong> is an abstract HTTP request that are used by a given website to login a user. The aim of the project is to provide templates for the most common used open source platform, in order to avoid to known how to bruteforce a given application. However if you have to bruteforce a custom application you have to create a custom template. All template are stored in the <strong>Templates</strong> directory. You need to edit the template file and insert the placeholder <strong>{USERNAME}</strong> and <strong>{PASSWORD}</strong> at the correct place. See the Default template (located at Templates/Default/Default.txt) to better understand how a template works.</p>
+
+<p><strong>Oracle</strong> is used to known if a given test has successful discovered the password or not. It is an XML file where you can configure a list of text that must be matched or not. See the Default oracle (located at Oracles/Default/Default.txt) to better understand how a oracle works.</p>
 
 <p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
 
