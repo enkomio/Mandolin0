@@ -127,7 +127,6 @@ module Program =
 
     [<EntryPoint>]
     let main argv = 
-
         let parser = UnionArgParser.Create<CLIArguments>()
         printHeader()
 
@@ -135,13 +134,15 @@ module Program =
             let results = parser.Parse(argv)
             let arguments = results.GetAllResults()
 
+            Configuration.readConfigurationFromFile("mandolin0.config")
+
             if arguments |> List.exists (fun m -> m = Show_Version) then
                 printFullVersion()
                 Configuration.okResult
             else
                 // read arguments used to run the bruteforcer
-                let usernamesFile : String option ref = ref None
-                let passwordsFile : String option ref = ref None
+                let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
+                let passwordsFile : String option ref = ref <| Some(Configuration.passwordsDictionary)
                 let url : String option ref = ref None
                 let template: String option ref = ref None
                 let oracle: String option ref = ref None

@@ -19,9 +19,7 @@
     <Externalconsole>true</Externalconsole>
     <Tailcalls>false</Tailcalls>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>-w "http://www.comune.castrocielo.fr.it/" --template Wordpress  -u "/Users/aparata/Desktop/usernames.txt" --passwords "/Users/aparata/Desktop/passwords.txt"</Commandlineparameters>
-    <StartArguments>
-    </StartArguments>
+    <StartArguments>-w "http://www.comune.filattiera.ms.it" --template Wordpress</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugSymbols>false</DebugSymbols>
@@ -219,6 +217,9 @@
     <Compile Include="TestRequestRepository.fs" />
     <Compile Include="Bruteforcer.fs" />
     <Compile Include="Program.fs" />
+    <None Include="mandolin0.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
