@@ -210,6 +210,7 @@ module Program =
                     // finally run the bruteforce process
                     Console.WriteLine()
                     Console.WriteLine("Bruteforce: {0}", (!url).Value)
+                    Console.WriteLine("Template: {0} - Oracle: {1}", (!template).Value, (!oracle).Value)
                     Console.WriteLine()
                     let printCurrentNumberOfworkersHandler = printCurrentNumberOfworkers (Console.CursorLeft) (Console.CursorTop)
                     bruteforcer.NumberOfWorkerChanged.Add(printCurrentNumberOfworkersHandler)
