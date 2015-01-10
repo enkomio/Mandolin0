@@ -14,9 +14,10 @@ open Microsoft.FSharp.Control
 /// Bruteforce class, run all the test and notify if some password succeed
 type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository: OracleRepository) =
 
+    let _callBackAdjustWorkerTimeout = 1000
     let _userPasswordFound = ref 0L
     let _startTestAccount = new Event<String * Int32>()
-    let _numberOfWorkerChanged = new Event<Int32>()
+    let _requestPerMinute = new Event<Int32>()
     let _startTest = new Event<TestRequest>()
     let _endTest = new Event<TestRequest>()
     let _passwordFound = new Event<TestRequest>()
@@ -50,57 +51,54 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
         let skipAdd = ref 0L
         _startTestAccount.Trigger(username, testList.Length)
 
-        // list of available workers to start
+        // list of available workers to start, 60 was choosed according to pratical test
         let availableWorkers = new BlockingCollection<Int32>()
-        [1 .. Environment.ProcessorCount] |> List.iter availableWorkers.Add
-        let currentNumberOfAvailableWorkers = ref availableWorkers.Count
+        [1 .. 50] |> List.iter (fun _ -> availableWorkers.Add(1))
 
-        let requestPerMinute = ref 0
-        let previousRequestsPerMinute = ref 0
+        let meanRequestsPerTimeout = ref 0L
+        let averageSpeed = ref (0, 0, float 0)
         // this routine have the intelligence to known if the number of workers are too much or too less
         let adjustNumberOfWorkers() =
-            if !previousRequestsPerMinute < !requestPerMinute then
-                // add a new available worker to the list plus the discarded worker
-                availableWorkers.Add(1)
-                incr currentNumberOfAvailableWorkers
-                _numberOfWorkerChanged.Trigger(int !currentNumberOfAvailableWorkers)
-            // if the lost is greathen than 10% than remove a worker
-            elif (float !previousRequestsPerMinute) > ((float !requestPerMinute) * 1.1) then
-                if !currentNumberOfAvailableWorkers > 0 then
-                    decr currentNumberOfAvailableWorkers
-                    _numberOfWorkerChanged.Trigger(!currentNumberOfAvailableWorkers)
-                    Interlocked.CompareExchange(skipAdd, 1L, 0L) |> ignore
 
-            previousRequestsPerMinute := !requestPerMinute
-            Interlocked.Exchange(requestPerMinute, 0) |> ignore
+            // calculate statistics
+            let currentMeanRequestsPerTimeout = Interlocked.CompareExchange(meanRequestsPerTimeout, 0L, !meanRequestsPerTimeout)
+            let (numOfIter, sumOfReq, oldMedian) = !averageSpeed
+            let newSumOfReq = sumOfReq + int currentMeanRequestsPerTimeout
+            let newMedian : float = float <| newSumOfReq / (numOfIter + 1)
+            averageSpeed := (numOfIter + 1, newSumOfReq, newMedian)
+
+            // if I have done better than the last time than add a worker
+            if (oldMedian * 1.1) <= float currentMeanRequestsPerTimeout then
+                // add a new worker to the list
+                availableWorkers.Add(1)
+            // if the lost is greathen than 10% than remove a worker
+            elif oldMedian > ((float currentMeanRequestsPerTimeout) * 1.1) then
+                Interlocked.CompareExchange(skipAdd, 1L, 0L) |> ignore
+            
+            let reqPerMinute = (int currentMeanRequestsPerTimeout) / (_callBackAdjustWorkerTimeout / 1000)
+            _requestPerMinute.Trigger(reqPerMinute)
 
         // set the timer in order to calculate the performance based on the current number of workers
         let timer: Timer option ref = ref None
         let timerCallback _ = 
             adjustNumberOfWorkers()
             // start again the callback
-            if (!timer).IsSome then (!timer).Value.Change(1000, Timeout.Infinite) |> ignore
-        timer := Some <| new Timer(new TimerCallback(timerCallback), null, 1000, Timeout.Infinite)
-
-        // called when a worker complete the account test process
-        let workerCompleted() =
-            Interlocked.Decrement(numOfRunningWorker) |> ignore
-            // Add the worker only if the skipAdd flag is not setted or there are not running workers.
-            // This last condition avoid deadlock. 
-            if Interlocked.Read(skipAdd) <> 1L || !numOfRunningWorker = 0L then
-                availableWorkers.Add(1)
+            if (!timer).IsSome then (!timer).Value.Change(_callBackAdjustWorkerTimeout, Timeout.Infinite) |> ignore
+        timer := Some <| new Timer(new TimerCallback(timerCallback), null, _callBackAdjustWorkerTimeout, Timeout.Infinite)
 
         // run the test process of a single request
         let analyze(testRequest: TestRequest) (checkCompletation: unit -> unit) =
             async {
+                _startTest.Trigger(testRequest)
                 Interlocked.Increment(numOfRunningWorker) |> ignore
+
                 let stopCurrentUserOld = Interlocked.Read(_userPasswordFound)
-                if stopCurrentUserOld = int64 0 then
+                if stopCurrentUserOld = 0L then
                     do! testAccount(testRequest)
-                    Interlocked.Increment(requestPerMinute) |> ignore
+                    Interlocked.Increment(meanRequestsPerTimeout) |> ignore
                     
                 _endTest.Trigger(testRequest)
-                workerCompleted()
+                Interlocked.Decrement(numOfRunningWorker) |> ignore
                 checkCompletation()
             } |> Async.Start
 
@@ -116,17 +114,17 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
                 cancellationTokenSource.Cancel()
 
         try
-            // caching to avoid to submit the same password more than one time
-            let cache = new HashSet<String>()
             for _ in availableWorkers.GetConsumingEnumerable(cancellationTokenSource.Token) do
                 if not <| (!remainingRequests).IsEmpty then
                     let testRequest = (!remainingRequests).Head
-                    _startTest.Trigger(testRequest)
-                    if cache.Add(testRequest.Password) then
-                        analyze testRequest checkCompletation
-                        remainingRequests := (!remainingRequests).Tail
-                    else
-                        _endTest.Trigger(testRequest)
+                    analyze testRequest checkCompletation
+                    remainingRequests := (!remainingRequests).Tail
+
+                    // Add the worker only if the skipAdd flag is not setted or there are not running workers.
+                    // This last condition avoid deadlock. 
+                    if Interlocked.Read(skipAdd) <> 1L (*|| !numOfRunningWorker = 0L*) then
+                        availableWorkers.Add(1)
+
         with
             | :? OperationCanceledException as e -> ()
             | :? ObjectDisposedException as e -> ()
@@ -140,7 +138,7 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
     member this.StartTest = _startTest.Publish
     member this.EndTest = _endTest.Publish
     member this.PasswordFound = _passwordFound.Publish
-    member this.NumberOfWorkerChanged = _numberOfWorkerChanged.Publish
+    member this.RequestPerMinute = _requestPerMinute.Publish
 
     member this.Run(url: String) =
         testRequestRepository.GetAll(url)

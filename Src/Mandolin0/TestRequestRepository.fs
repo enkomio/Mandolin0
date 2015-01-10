@@ -14,14 +14,24 @@ type TestRequestRepository(usernameFile: String, passwordFile: String, templateN
         seq {
             if File.Exists(usernameFile) |> not then raise <| new ApplicationException(String.Format("Usernames file '{0}' doesn't exists", usernameFile))
             if File.Exists(passwordFile) |> not then raise <| new ApplicationException(String.Format("Passowords file '{0}' doesn't exists", passwordFile))
+        
+            let usernames = new HashSet<String>()
+            let passwords = new HashSet<String>()
+
+            let readAll(set: HashSet<String>, file: String) =
+                for rawItem in File.ReadAllLines(file) do
+                    let item = rawItem.Trim()
+                    set.Add(item) |> ignore
+
+            readAll(usernames, usernameFile)
+            readAll(passwords, passwordFile)
 
             let testRequestFactory = createTestRequest templateName oracleName url
-            for rawUsername in File.ReadAllLines(usernameFile) do
+            for username in usernames do
 
                 // read all requests in advance in order to speed up the bruteforce later
                 let requests = new List<TestRequest>()
-                for rawPassword in File.ReadAllLines(passwordFile) do
-                    let (username, password) = (rawUsername.Trim(), rawPassword.Trim())
+                for password in passwords do
                     if not <| String.IsNullOrEmpty(password) then
                         let testRequest = testRequestFactory username password
                         requests.Add(testRequest)

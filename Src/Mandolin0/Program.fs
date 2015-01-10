@@ -46,12 +46,12 @@ module Program =
         heading.AppendFormat( "Version: {0}{1}", version, Environment.NewLine)
         |> Console.WriteLine
 
-    let printCurrentNumberOfworkers (left: Int32) (top: Int32) (numOfWorkers: Int32) =
+    let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (numOfWorkers: Int32) =
         lock _syncRoot (fun () ->
             let (savedLeft, savedTop) = (Console.CursorLeft, Console.CursorTop)
             Console.CursorLeft <- left
             Console.CursorTop <- top
-            Console.WriteLine("# Workers: {0}", numOfWorkers.ToString().PadRight(10, ' '))
+            Console.WriteLine("Req/s: {0}", numOfWorkers.ToString().PadRight(10, ' '))
             Console.CursorLeft <- savedLeft
             Console.CursorTop <- savedTop
         )
@@ -212,8 +212,8 @@ module Program =
                     Console.WriteLine("Bruteforce: {0}", (!url).Value)
                     Console.WriteLine("Template: {0} - Oracle: {1}", (!template).Value, (!oracle).Value)
                     Console.WriteLine()
-                    let printCurrentNumberOfworkersHandler = printCurrentNumberOfworkers (Console.CursorLeft) (Console.CursorTop)
-                    bruteforcer.NumberOfWorkerChanged.Add(printCurrentNumberOfworkersHandler)
+                    let printCurrentNumberOfRequestsPerMinuteHandler = printCurrentNumberOfRequestsPerMinute (Console.CursorLeft) (Console.CursorTop)
+                    bruteforcer.RequestPerMinute.Add(printCurrentNumberOfRequestsPerMinuteHandler)
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult
