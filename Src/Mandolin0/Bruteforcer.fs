@@ -14,7 +14,7 @@ open Microsoft.FSharp.Control
 /// Bruteforce class, run all the test and notify if some password succeed
 type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository: OracleRepository) =
 
-    let _callBackAdjustWorkerTimeout = 1000
+    let _callBackAdjustWorkerTimeout = 2000
     let _userPasswordFound = ref 0L
     let _startTestAccount = new Event<String * Int32>()
     let _requestPerMinute = new Event<Int32>()
@@ -51,9 +51,9 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
         let skipAdd = ref 0L
         _startTestAccount.Trigger(username, testList.Length)
 
-        // list of available workers to start, 50 was choosed according to pratical test
+        // list of available workers to start, 60 was choosed according to pratical test
         let availableWorkers = new BlockingCollection<Int32>()
-        [1 .. 50] |> List.iter (fun _ -> availableWorkers.Add(1))
+        [1 .. 60] |> List.iter (fun _ -> availableWorkers.Add(1))
 
         let meanRequestsPerTimeout = ref 0L
         let averageSpeed = ref (0, 0, float 0)

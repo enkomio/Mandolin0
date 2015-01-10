@@ -117,11 +117,14 @@ module Program =
         
     let callbackPasswordFound(testRequest: TestRequest) =
         lock _syncRoot (fun () ->
+            let (left, top) = (Console.CursorLeft, Console.CursorTop)
             Console.Beep()
             Console.WriteLine()
             Console.WriteLine()
             Console.WriteLine("Username: {0}", testRequest.Username)
             Console.WriteLine("Password: {0}", testRequest.Password)
+            Console.CursorLeft <- left
+            Console.CursorTop <- top
         )
 
     [<EntryPoint>]

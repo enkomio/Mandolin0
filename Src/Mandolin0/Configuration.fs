@@ -10,8 +10,8 @@ module Configuration =
 
     let mutable usernamesDictionary = String.Empty
     let mutable passwordsDictionary = String.Empty
-    let mutable templatesDirectory = "Templates"
-    let mutable oraclesDirectory = "Oracles"
+    let mutable templatesDirectory = Path.Combine("Data", "Templates")
+    let mutable oraclesDirectory = Path.Combine("Data", "Oracles")
     let mutable timeout = 10000
 
     let readConfigurationFromFile(configurationFilename) =
