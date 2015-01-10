@@ -1,70 +1,85 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Mandolin0 by enkomio</title>
+    <meta name="description" content="Mandolin0 : A web form bruteforce tool based on templating">
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <title>Mandolin0</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>Mandolin0</h1>
-        <p>A web form bruteforce tool based on templating</p>
-        <p class="view"><a href="https://github.com/enkomio/Mandolin0">View the Project on GitHub <small>enkomio/Mandolin0</small></a></p>
-        <ul>
-          <li><a href="https://github.com/enkomio/Mandolin0/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/enkomio/Mandolin0/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/enkomio/Mandolin0">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/enkomio/Mandolin0">View on GitHub</a>
+
+          <h1 id="project_title">Mandolin0</h1>
+          <h2 id="project_tagline">A web form bruteforce tool based on templating</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/enkomio/Mandolin0/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/enkomio/Mandolin0/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
         <h3>
-<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction.</h3>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h3>
 
-<p>Mandolin0 is a web form bruteforcing tool created with the aims to be very performant and easy to use. It is based on the concept of Template and Oracle, this will help not experienced people to use the tool without the needed knowledge of how to setup the login HTTP Post (this of course isn't an excute to not learn hot the things work).</p>
-
-<p>You can download Mandolin0 from <a href="https://github.com/enkomio/Mandolin0/releases/tag/v1.0.0">here</a>.</p>
+<p>Mandolin0 is a web form bruteforcing tool created with the aims to be very performant and easy to use. It is based on the concept of Template and Oracle, this will help not experienced auditors to use the tool without the knowledge of how to setup a login HTTP Post (this of course isn't an excuse to not learn hot the things work).</p>
 
 <h3>
-<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration</h3>
+<a id="download" class="anchor" href="#download" aria-hidden="true"><span class="octicon octicon-link"></span></a>Download</h3>
 
-<p>You can configure Mandolin0 through the configuration file located in the root directory and named <strong>mandolin0.config</strong>. Here you can specify which usernames and passwords dictionary to use and other configuration.</p>
-
-<h3>
-<a id="what-are-template-and-oracle" class="anchor" href="#what-are-template-and-oracle" aria-hidden="true"><span class="octicon octicon-link"></span></a>What are Template and Oracle</h3>
-
-<p><strong>Template</strong> is an abstract HTTP request that are used by a given website to login a user. The aim of the project is to provide templates for the most common used open source platform, in order to avoid to known how to bruteforce a given application. However if you have to bruteforce a custom application you have to create a custom template. All template are stored in the <strong>Templates</strong> directory. You need to edit the template file and insert the placeholder <strong>{USERNAME}</strong> and <strong>{PASSWORD}</strong> at the correct place. See the Default template (located at Templates/Default/Default.txt) to better understand how a template works.</p>
-
-<p><strong>Oracle</strong> is used to known if a given test has successful discovered the password or not. It is an XML file where you can configure a list of text that must be matched or not. See the Default oracle (located at Oracles/Default/Default.txt) to better understand how a oracle works.</p>
+<p>You can download a compiled version of Mandolin0 from <a href="https://github.com/enkomio/Mandolin0/releases/tag/v1.0.0">here</a>.</p>
 
 <h3>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Demo</h3>
 
-<p>Run the following command to run a wordpress bruteforce against the target <a href="http://wordpress.web.site">http://wordpress.web.site</a></p>
+<p>Mandolin0 include templates for the most common CMS. If you want to test a Wordpress web site just use the following command:</p>
 
 <pre><code>Mandolin0 -w http://wordpress.web.site --template Wordpress
 </code></pre>
 
 <h3>
-<a id="authors" class="anchor" href="#authors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors</h3>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h3>
 
-<p>Mandolin0 was created by Antonio Parata (<a href="https://github.com/enkomio" class="user-mention">@enkomio</a>). Twitter: <a href="https://twitter.com/s4tan">https://twitter.com/s4tan</a></p>
+<ul>
+<li><a href="https://github.com/enkomio/Mandolin0/wiki">user's manual</a></li>
+</ul>
+
+<h3>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
+
+<p>Copyright © by Antonio Parata. All rights reserved.</p>
+
+<h3>
+<a id="developers" class="anchor" href="#developers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Developers</h3>
+
+<ul>
+<li>Antonio Parata - Twitter: <a href="https://twitter.com/s4tan">https://twitter.com/s4tan</a>
+</li>
+</ul>
       </section>
     </div>
-    <footer>
-      <p>Project maintained by <a href="https://github.com/enkomio">enkomio</a></p>
-      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
-    </footer>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Mandolin0 maintained by <a href="https://github.com/enkomio">enkomio</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
     
+
   </body>
 </html>
