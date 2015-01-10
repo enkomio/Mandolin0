@@ -24,7 +24,6 @@ with
             | Template _ -> "specify the HTTP template to use for the bruteforce"
             | Oracle _ -> "specify the oracle to use for the bruteforce"
             | Show_Version -> "show the full version"
- 
 
 module Program =
 
@@ -37,7 +36,7 @@ module Program =
         let nowDate = DateTime.Now
 
         let heading = StringBuilder()
-        heading.AppendFormat( "{0}{1} v{2} - aparata@gmail.com{0}Copyright (c) Antonio Parata 2015-{3}. All rights reserved.", Environment.NewLine, name, version, nowDate.Year )
+        heading.AppendFormat( "{0}{1} v{2} - http://enkomio.github.io/Mandolin0/", Environment.NewLine, name, version, nowDate.Year )
         |> Console.WriteLine
 
     let printFullVersion() =

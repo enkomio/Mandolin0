@@ -51,7 +51,7 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
         let skipAdd = ref 0L
         _startTestAccount.Trigger(username, testList.Length)
 
-        // list of available workers to start, 60 was choosed according to pratical test
+        // list of available workers to start, 50 was choosed according to pratical test
         let availableWorkers = new BlockingCollection<Int32>()
         [1 .. 50] |> List.iter (fun _ -> availableWorkers.Add(1))
 
@@ -59,19 +59,18 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
         let averageSpeed = ref (0, 0, float 0)
         // this routine have the intelligence to known if the number of workers are too much or too less
         let adjustNumberOfWorkers() =
-
             // calculate statistics
             let currentMeanRequestsPerTimeout = Interlocked.CompareExchange(meanRequestsPerTimeout, 0L, !meanRequestsPerTimeout)
             let (numOfIter, sumOfReq, oldMedian) = !averageSpeed
             let newSumOfReq = sumOfReq + int currentMeanRequestsPerTimeout
-            let newMedian : float = float <| newSumOfReq / (numOfIter + 1)
+            let newMedian = float <| newSumOfReq / (numOfIter + 1)
             averageSpeed := (numOfIter + 1, newSumOfReq, newMedian)
 
-            // if I have done better than the last time than add a worker
+            // if I have done better than the last time than add a worker to try to increase the performance
             if (oldMedian * 1.1) <= float currentMeanRequestsPerTimeout then
                 // add a new worker to the list
                 availableWorkers.Add(1)
-            // if the lost is greathen than 10% than remove a worker
+            // if the lost is greathen than 10% than remove a worker to not decrease the performance
             elif oldMedian > ((float currentMeanRequestsPerTimeout) * 1.1) then
                 Interlocked.CompareExchange(skipAdd, 1L, 0L) |> ignore
             
@@ -120,9 +119,8 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
                     analyze testRequest checkCompletation
                     remainingRequests := (!remainingRequests).Tail
 
-                    // Add the worker only if the skipAdd flag is not setted or there are not running workers.
-                    // This last condition avoid deadlock. 
-                    if Interlocked.Read(skipAdd) <> 1L (*|| !numOfRunningWorker = 0L*) then
+                    // Add the worker only if the skipAdd flag is not setted
+                    if Interlocked.Read(skipAdd) <> 1L then
                         availableWorkers.Add(1)
 
         with
