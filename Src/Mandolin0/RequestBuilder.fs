@@ -66,6 +66,8 @@ type RequestBuilder(templateRepository: TemplateRepository) =
             httpWebRequest.Method <- httpMethod
             httpWebRequest.AllowAutoRedirect <- false
             httpWebRequest.Timeout <- Configuration.timeout
+            if Uri.IsWellFormedUriString(Configuration.proxy, UriKind.Absolute) then
+                httpWebRequest.Proxy <- new WebProxy(Configuration.proxy)
 
             let version = protocolVersion.Split('/').[1]
             httpWebRequest.ProtocolVersion <- Version.Parse(version)

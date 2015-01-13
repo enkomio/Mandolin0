@@ -11,8 +11,10 @@ type CLIArguments =
     | [<AltCommandLine("-p")>] Passwords of String
     | [<AltCommandLine("-w")>] Url of String
     | Template of String
+    | List_Templates
     | Oracle of String
-    | Show_Version
+    | List_Oracles
+    | Version
 
 with
     interface IArgParserTemplate with
@@ -23,7 +25,9 @@ with
             | Passwords _ -> "specify a password dictionary to use with each username"
             | Template _ -> "specify the HTTP template to use for the bruteforce"
             | Oracle _ -> "specify the oracle to use for the bruteforce"
-            | Show_Version -> "show the full version"
+            | List_Templates -> "show all the available templates"
+            | List_Oracles -> "show all the available oracles"
+            | Version -> "show the full version"
 
 module Program =
 
@@ -44,6 +48,22 @@ module Program =
         let heading = StringBuilder()
         heading.AppendFormat( "Version: {0}{1}", version, Environment.NewLine)
         |> Console.WriteLine
+
+    let printAllTemplates(containerBuilder: ContainerBuilder) =
+        let container = containerBuilder.Build()
+        let templateRepository = container.Resolve<TemplateRepository>()
+        Console.WriteLine("Templates:")
+        Console.WriteLine()
+        for template in templateRepository.GetAllNames() do
+            Console.WriteLine("\t{0}", template)
+
+    let printAllOracles(containerBuilder: ContainerBuilder) =
+        let container = containerBuilder.Build()
+        let oracleRepository = container.Resolve<OracleRepository>()
+        Console.WriteLine("Oracles:")
+        Console.WriteLine()
+        for oracle in oracleRepository.GetAllNames() do
+            Console.WriteLine("\t{0}", oracle)
 
     let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (numOfWorkers: Int32) =
         lock _syncRoot (fun () ->
@@ -133,15 +153,50 @@ module Program =
         printHeader()
 
         try
+            // read the configuration from the file
+            Configuration.readConfigurationFromFile("mandolin0.config")
+            
             let results = parser.Parse(argv)
             let arguments = results.GetAllResults()
 
-            Configuration.readConfigurationFromFile("mandolin0.config")
+            // configure the container to instantiate the components
+            let containerBuilder = new ContainerBuilder()
+            ignore(
+                containerBuilder.RegisterType<RequestBuilder>(),
 
-            if arguments |> List.exists (fun m -> m = Show_Version) then
+                containerBuilder.RegisterType<TemplateRepository>()
+                    .WithParameter("templateDirectory", Configuration.templatesDirectory),
+
+                containerBuilder.RegisterType<OracleRepository>()
+                    .WithParameter("oracleDirectory", Configuration.oraclesDirectory),
+                        
+                containerBuilder.RegisterType<Bruteforcer>()
+            )
+
+            if arguments |> List.exists (fun m -> m = Version) then
+                Console.WriteLine()
                 printFullVersion()
                 Configuration.okResult
-            else
+            elif arguments |> List.exists (fun m -> m = List_Templates) then
+                Console.WriteLine()
+                printAllTemplates(containerBuilder)
+                Configuration.okResult
+            elif arguments |> List.exists (fun m -> m = List_Oracles) then
+                Console.WriteLine()
+                printAllOracles(containerBuilder)
+                Configuration.okResult
+            elif  arguments |> List.exists (fun m -> match m with Url _ -> true | _ -> false) then
+
+                // check updates
+                Console.WriteLine()
+                Console.Write("Check for updates...")
+                if UpdateChecker.checkIfLastVersion() then
+                    // try to update th KB
+                    UpdateChecker.updateKnowledgeBase(fun _ -> Console.Write("."))
+                    Console.WriteLine("Done")
+                else
+                    Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
+
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
                 let passwordsFile : String option ref = ref <| Some(Configuration.passwordsDictionary)
@@ -179,25 +234,12 @@ module Program =
                     if (!oracle).IsNone then
                         oracle := Some (!template).Value
 
-                    // configure the container to instantiate the components
-                    let containerBuilder = new ContainerBuilder()
-                    ignore(
-                        containerBuilder.RegisterType<RequestBuilder>(),
-
-                        containerBuilder.RegisterType<TemplateRepository>()
-                            .WithParameter("templateDirectory", Configuration.templatesDirectory),
-
-                        containerBuilder.RegisterType<OracleRepository>()
-                            .WithParameter("oracleDirectory", Configuration.oraclesDirectory),
-                        
-                        containerBuilder.RegisterType<TestRequestRepository>()
-                            .WithParameter("usernameFile", (!usernamesFile).Value)
-                            .WithParameter("passwordFile", (!passwordsFile).Value)
-                            .WithParameter("templateName", (!template).Value)
-                            .WithParameter("oracleName", (!oracle).Value),
-                        
-                        containerBuilder.RegisterType<Bruteforcer>()
-                    )
+                    // regist a needed component for the bruteforce process
+                    containerBuilder.RegisterType<TestRequestRepository>()
+                        .WithParameter("usernameFile", (!usernamesFile).Value)
+                        .WithParameter("passwordFile", (!passwordsFile).Value)
+                        .WithParameter("templateName", (!template).Value)
+                        .WithParameter("oracleName", (!oracle).Value) |> ignore
 
                     // resolve all the needed components and run the bruteforce
                     let container = containerBuilder.Build()
@@ -219,6 +261,10 @@ module Program =
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult
+            else
+                let usage = parser.Usage()
+                Console.WriteLine(usage)
+                Configuration.okResult
         with 
             | :? ArgumentException as e -> 
                 let usage = parser.Usage()

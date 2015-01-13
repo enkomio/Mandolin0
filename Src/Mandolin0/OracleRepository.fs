@@ -30,6 +30,9 @@ type OracleRepository(oracleDirectory: String) =
                 let files = Directory.EnumerateFiles(directory) |> Seq.toList
                 loopDirectory directoryName files
 
+    member this.GetAllNames() =
+        _concurrentDictionary.Keys
+
     member this.Get(testRequest: TestRequest) =
         let oracle = ref <| new Oracle(testRequest.Oracle)
         if _concurrentDictionary.TryGetValue(testRequest.Template, oracle) then

@@ -35,6 +35,9 @@ type TemplateRepository(templateDirectory: String) =
                 let files = Directory.EnumerateFiles(directory) |> Seq.toList
                 loopDirectory directoryName files
 
+    member this.GetAllNames() =
+        _concurrentDictionary.Keys
+
     member this.Get(testRequest: TestRequest) =
         let templateContent = ref String.Empty
         if _concurrentDictionary.TryGetValue(testRequest.Template, templateContent) then

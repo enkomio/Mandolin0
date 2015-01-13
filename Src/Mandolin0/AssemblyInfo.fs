@@ -10,9 +10,5 @@ open System.Runtime.CompilerServices
 [<AssemblyProduct("")>]
 [<AssemblyCopyright("Antonio Parata")>]
 [<AssemblyTrademark("")>]
-[<AssemblyVersion("1.0.0.0")>]
+[<AssemblyVersion("1.1.0.0")>]
 ()
-// The assembly version has the format {Major}.{Minor}.{Build}.{Revision}
-//[<assembly: AssemblyDelaySign(false)>]
-//[<assembly: AssemblyKeyFile("")>]
-
