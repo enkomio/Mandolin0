@@ -1,8 +1,0 @@
-﻿<Oracle>
-	<PositiveMatch>
-		<Text>Welcome</Text>
-	</PositiveMatch>
-	<NegativeMatch>
-		<Text>Password</Text>
-	</NegativeMatch>
-</Oracle>

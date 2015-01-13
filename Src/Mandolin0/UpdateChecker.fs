@@ -9,9 +9,8 @@ open System.IO
 open System.Text
 open Octokit
 
-
-// verificare l'ultima versione attraverso le release
-// clonare uno specifico repository dei dati di mandolin0
+// verificare l'ultima versione utilizzando il sito di mandolin0
+// clonare uno specifico repository dei dati di mandolin0 utilizzando un'altro repository (vedere se c'è il rate limit)
 
 module UpdateChecker =
     
@@ -29,6 +28,10 @@ module UpdateChecker =
     let checkIfLastVersion() =
         async {
             let github = new GitHubClient(new ProductHeaderValue("Enkomio"))
+            let! allReleases = github.Release.GetAll("Enkomio", "Mandolin0") |> Async.AwaitTask
+           
+            
+
             let! contents = github.Repository.Content.GetContents("Enkomio","Mandolin0","CHANGELOG.md") |> Async.AwaitTask
             let changelog = contents.[0].Content
             return parseChangeLog(changelog)

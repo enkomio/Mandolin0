@@ -272,5 +272,8 @@ module Program =
                 Configuration.wrongArgumentsResult
             | e ->
                 Console.WriteLine()
-                Console.WriteLine(e.Message)
+                let msg =
+                    if e.InnerException <> null then e.InnerException.Message
+                    else e.Message
+                Console.WriteLine(msg)
                 Configuration.generalExceptionResult
