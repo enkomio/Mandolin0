@@ -5,4 +5,3 @@ nuget FSharpx.Core
 nuget FsPowerPack.Community
 nuget Autofac
 nuget UnionArgParser
-nuget Octokit

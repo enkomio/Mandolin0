@@ -15,12 +15,4 @@ NUGET
       FSPowerPack.Core.Community 
     FSPowerPack.Parallel.Seq.Community (3.0.0.0)
       FSPowerPack.Core.Community 
-    Microsoft.Bcl (1.1.9)
-      Microsoft.Bcl.Build (>= 1.0.14)
-    Microsoft.Bcl.Build (1.0.21)
-    Microsoft.Net.Http (2.2.28)
-      Microsoft.Bcl (>= 1.1.9)
-      Microsoft.Bcl.Build (>= 1.0.14)
-    Octokit (0.6.2)
-      Microsoft.Net.Http 
     UnionArgParser (0.8.2)

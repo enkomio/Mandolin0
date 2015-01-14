@@ -7,24 +7,35 @@ open System.Reflection
 open System.Text.RegularExpressions
 open System.IO
 open System.Text
-open Octokit
 
 // verificare l'ultima versione utilizzando il sito di mandolin0
 // clonare uno specifico repository dei dati di mandolin0 utilizzando un'altro repository (vedere se c'è il rate limit)
 
+(*
+contenuto da parsare:
+
+ <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Mandolin0 : A web form bruteforce tool based on templating">
+	<meta name="version" content="1.0.0">
+	<meta name="kb" content="20150113.zip">
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Mandolin0</title>
+
+
+    Url:
+    http://enkomio.github.io/Mandolin0/
+
+*)
+
 module UpdateChecker =
     
-    let private parseChangeLog(changelogContent: String) =    
-        // interested style: # Version 1.0 (2015-1-10)
-        let regex = new Regex("# Version ([0-9.]+) \([0-9\-]+\)")
-        let matcher = regex.Match(changelogContent)
-        if matcher.Success then
-            let lastVersion = Version.Parse(matcher.Groups.[1].Value)
-            let currentVersion = Assembly.GetEntryAssembly().GetName().Version
-            lastVersion <= currentVersion
-        else                
-            false
+    let checkIfLastVersion() =
+        true
 
+    let updateKnowledgeBase(callback: String -> unit) =
+        ()    
+    (*
     let checkIfLastVersion() =
         async {
             let github = new GitHubClient(new ProductHeaderValue("Enkomio"))
@@ -89,3 +100,4 @@ module UpdateChecker =
 
         } |> Async.RunSynchronously 
 
+        *)
