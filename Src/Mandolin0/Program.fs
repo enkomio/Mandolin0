@@ -187,7 +187,7 @@ module Program =
                 printAllOracles(containerBuilder)
                 Configuration.okResult
             elif  arguments |> List.exists (fun m -> match m with Url _ -> true | _ -> false) then
-
+                
                 // check updates
                 Console.WriteLine()
                 Console.Write("Check for updates...")
@@ -197,7 +197,7 @@ module Program =
                     Console.WriteLine("Done")
                 else
                     Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
-
+                    
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
                 let passwordsFile : String option ref = ref <| Some(Configuration.passwordsDictionary)

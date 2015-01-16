@@ -35,17 +35,26 @@ type TestRequest(username: String, password: String) =
     member this.Send() =
         async {
             let responseText = ref String.Empty
-            try
-                this.InitializeBeforeSend()
-                let! httpResponse = this.Request.Value.AsyncGetResponse()
-                let! tmpText = readResponseAsText(httpResponse :?> HttpWebResponse)
-                responseText := tmpText
-            with
-                | :? WebException as webException -> 
-                    if webException.Response <> null then
-                        let! tmpText =  readResponseAsText(webException.Response :?> HttpWebResponse)
-                        responseText := tmpText
-                | _ -> ()
+            let completed = ref false
+            let numOfRetry = ref 0
+
+            while(not(!completed)) do
+                try
+                    this.InitializeBeforeSend()
+                    let! httpResponse = this.Request.Value.AsyncGetResponse()
+                    let! tmpText = readResponseAsText(httpResponse :?> HttpWebResponse)
+                    responseText := tmpText
+                    completed := true
+                with
+                    | :? WebException as webException -> 
+                        incr numOfRetry
+                        if webException.Response <> null then
+                            let! tmpText =  readResponseAsText(webException.Response :?> HttpWebResponse)
+                            responseText := tmpText
+                            completed := true
+
+                        elif !numOfRetry > 10 then
+                            raise <| new WebException("Unable to retrieve result from the server, maybe are you DOSsing the server?.")
 
             return !responseText
         }

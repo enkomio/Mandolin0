@@ -11,16 +11,11 @@ open System.Text
 open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
 
-// verificare l'ultima versione utilizzando il sito di mandolin0
-// se il file esiste non lo cancellare o aggiornare
-// salvare l'ultimo aggiornamento fatto per capire se devo aggiornare o meno la KB
-// provare a mettere 500 worker e vedere se aumenta il numero di req per minuto
-// se ho molti timeout interrompere il processo di scansione
-
 module UpdateChecker =
     
     let mutable private _lastVersion : String option = None
     let mutable private _lastKB: String option = None
+    let mutable private _lastKBUpdateUrl: String option = None
 
     let private readVersionAndKb(html: String) =
         // get last Mandolin0 version
@@ -35,10 +30,12 @@ module UpdateChecker =
         let regex = new Regex("<meta name=\"kb\" content=\"([^\"]+)\">")
         let regexMatch = regex.Match(html)
         if regexMatch.Success then
-            _lastKB <- Some <| regexMatch.Groups.[1].Value
-            if not <| Uri.IsWellFormedUriString(_lastKB.Value, UriKind.Absolute) then
-                let fullPathUri = new Uri(new Uri("http://enkomio.github.io/Mandolin0/"), _lastKB.Value)
-                _lastKB <- Some (fullPathUri.ToString())
+            _lastKBUpdateUrl <- Some <| regexMatch.Groups.[1].Value
+            if not <| Uri.IsWellFormedUriString(_lastKBUpdateUrl.Value, UriKind.Absolute) then
+                let fullPathUri = new Uri(new Uri("http://enkomio.github.io/Mandolin0/"), _lastKBUpdateUrl.Value)
+                _lastKBUpdateUrl <- Some (fullPathUri.ToString())
+
+            _lastKB <- Some <| Path.GetFileNameWithoutExtension(_lastKBUpdateUrl.Value)
         else
             raise <| new ApplicationException("Unable to identify the last version of KnowlefgeBase from remote content")
 
@@ -104,11 +101,14 @@ module UpdateChecker =
         if _lastKB.IsNone then
             retrieveInfo()
 
-        let currentVersion = Configuration.readProperty("KB")
-        if String.IsNullOrWhiteSpace(currentVersion) || Version.Parse(currentVersion) <= Version.Parse(_lastKB.Value) then
+        let currentVersion = ref 0
+        Int32.TryParse(Configuration.readProperty("KB"), currentVersion) |> ignore
+        let lastVersionNum = Int32.Parse(_lastKB.Value)
+
+        if lastVersionNum > !currentVersion then
             let tmpZipFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".zip")
             use webClient = new WebClient()
-            webClient.DownloadFile(_lastKB.Value, tmpZipFilename)
+            webClient.DownloadFile(_lastKBUpdateUrl.Value, tmpZipFilename)
             let unzippedDirectory = unzip(tmpZipFilename)
             copyDirectoryToDataDirectoryInSafeWay(unzippedDirectory)
             Configuration.saveProperty("KB", _lastKB.Value)
