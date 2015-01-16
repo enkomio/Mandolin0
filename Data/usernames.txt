@@ -3,6 +3,4 @@ test
 guest
 root
 site
-wordpress
-blog
 administrator
