@@ -83,7 +83,7 @@ module UpdateChecker =
 
         destDirectory
 
-    let copyDirectoryToDataDirectoryInSafeWay(directory: String) =
+    let copyDirectoryToDataDirectoryInSafeWay(directory: String, callback: String -> unit) =
         let srcDirectory = 
             if directory.EndsWith(Path.DirectorySeparatorChar.ToString()) then directory
             else directory + Path.DirectorySeparatorChar.ToString()
@@ -96,6 +96,7 @@ module UpdateChecker =
             
             if not <| File.Exists(destFilename) then
                 File.Copy(filename, destFilename)
+                callback(destFilename)
 
     let updateKnowledgeBase(configurationFilename: String, callback: String -> unit) =
         if _lastKB.IsNone then
@@ -110,6 +111,6 @@ module UpdateChecker =
             use webClient = new WebClient()
             webClient.DownloadFile(_lastKBUpdateUrl.Value, tmpZipFilename)
             let unzippedDirectory = unzip(tmpZipFilename)
-            copyDirectoryToDataDirectoryInSafeWay(unzippedDirectory)
+            copyDirectoryToDataDirectoryInSafeWay(unzippedDirectory, callback)
             Configuration.saveProperty("KB", _lastKB.Value)
             Configuration.saveConfiguration(configurationFilename)
