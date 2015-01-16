@@ -154,7 +154,8 @@ module Program =
 
         try
             // read the configuration from the file
-            Configuration.readConfigurationFromFile("mandolin0.config")
+            let configurationFilename = "mandolin0.config"
+            Configuration.readConfigurationFromFile(configurationFilename)
             
             let results = parser.Parse(argv)
             let arguments = results.GetAllResults()
@@ -192,7 +193,7 @@ module Program =
                 Console.Write("Check for updates...")
                 if UpdateChecker.checkIfLastVersion() then
                     // try to update th KB
-                    UpdateChecker.updateKnowledgeBase(fun _ -> Console.Write("."))
+                    UpdateChecker.updateKnowledgeBase(configurationFilename, fun _ -> Console.Write("."))
                     Console.WriteLine("Done")
                 else
                     Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")

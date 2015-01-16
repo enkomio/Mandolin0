@@ -15,4 +15,5 @@ NUGET
       FSPowerPack.Core.Community 
     FSPowerPack.Parallel.Seq.Community (3.0.0.0)
       FSPowerPack.Core.Community 
+    ICSharpCode.SharpZipLib.dll (0.85.4.369)
     UnionArgParser (0.8.2)
