@@ -10,43 +10,52 @@ open System.Net
 open System.Text
 open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
+open System.Xml.Linq
+open System.Linq
 
 module UpdateChecker =
+    let private x str = XName.Get str
     
     let mutable private _lastVersion : String option = None
     let mutable private _lastKB: String option = None
     let mutable private _lastKBUpdateUrl: String option = None
 
-    let private readVersionAndKb(html: String) =
-        // get last Mandolin0 version
-        let regex = new Regex("<meta name=\"version\" content=\"([0-9.]+)\">")
-        let regexMatch = regex.Match(html)
-        if regexMatch.Success then
-            _lastVersion <- Some <| regexMatch.Groups.[1].Value
-        else
-            raise <| new ApplicationException("Unable to identify the last version of Mandolin0 from remote content")
-
-        // get last KB version
-        let regex = new Regex("<meta name=\"kb\" content=\"([^\"]+)\">")
-        let regexMatch = regex.Match(html)
-        if regexMatch.Success then
-            _lastKBUpdateUrl <- Some <| regexMatch.Groups.[1].Value
-            if not <| Uri.IsWellFormedUriString(_lastKBUpdateUrl.Value, UriKind.Absolute) then
-                let fullPathUri = new Uri(new Uri("http://enkomio.github.io/Mandolin0/"), _lastKBUpdateUrl.Value)
-                _lastKBUpdateUrl <- Some (fullPathUri.ToString())
-
-            _lastKB <- Some <| Path.GetFileNameWithoutExtension(_lastKBUpdateUrl.Value)
-        else
-            raise <| new ApplicationException("Unable to identify the last version of KnowlefgeBase from remote content")
-
-    let retrieveInfo() =
+    let private retrieveLastVersion() =
         async {
-            let updateUrl = new Uri("http://enkomio.github.io/Mandolin0/")
+            // retrieve last version
+            let updateUrl = new Uri("https://github.com/enkomio/Mandolin0/releases/latest")
             let webRequest = WebRequest.Create(updateUrl) :?> HttpWebRequest
+            webRequest.AllowAutoRedirect <- true
+
             use! webResponse = webRequest.GetResponseAsync() |> Async.AwaitTask
+
+            let responseUri = webResponse.ResponseUri
+            let chunks = responseUri.AbsolutePath.Split('/')
+            let version = chunks.[chunks.Length - 1].Substring(1)
+            _lastVersion <- Some version
+        }
+
+    let private retrieveLastKnowledgeBase() =
+        async {
+            // retrieve last version
+            let updateUrl = new Uri("http://enkomio.github.io/Mandolin0/kb.xml")
+            let webRequest = WebRequest.Create(updateUrl) :?> HttpWebRequest
+
+            use! webResponse = webRequest.GetResponseAsync() |> Async.AwaitTask
+
             use streamReader = new StreamReader(webResponse.GetResponseStream())
-            let html = streamReader.ReadToEnd()
-            readVersionAndKb(html)
+            let xml = streamReader.ReadToEnd()
+            
+            let doc = XDocument.Parse(xml)
+            let root = doc.Element(x"kb")
+            _lastKB <- Some <| root.Element(x"version").Value
+            _lastKBUpdateUrl <- Some <| root.Element(x"uri").Value
+        }
+
+    let private retrieveInfo() =
+        async {
+            do! retrieveLastVersion()
+            do! retrieveLastKnowledgeBase()
         } |> Async.RunSynchronously
 
     let checkIfLastVersion() =
