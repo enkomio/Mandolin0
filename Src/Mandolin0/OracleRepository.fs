@@ -33,9 +33,9 @@ type OracleRepository(oracleDirectory: String) =
     member this.GetAllNames() =
         _concurrentDictionary.Keys
 
-    member this.Get(testRequest: TestRequest) =
-        let oracle = ref <| new Oracle(testRequest.Oracle)
-        if _concurrentDictionary.TryGetValue(testRequest.Template, oracle) then
+    member this.Get(oracleName: String) =
+        let oracle = ref <| new Oracle(oracleName)
+        if _concurrentDictionary.TryGetValue(oracleName, oracle) then
             !oracle
         else
-            raise <| new ApplicationException("Unable to find the oracle with name: " + testRequest.Oracle)
+            raise <| new ApplicationException("Unable to find the oracle with name: " + oracleName)

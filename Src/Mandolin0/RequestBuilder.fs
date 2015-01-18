@@ -17,7 +17,8 @@ type RequestBuilder(templateRepository: TemplateRepository) =
         | "Content-Length" -> 
             let contentLen = ref 0L
             if Int64.TryParse(headerValue, contentLen) then webRequest.ContentLength <- !contentLen
-        | "Connection" -> 
+        | "Connection" 
+        | "Proxy-Connection" -> 
             if headerValue.Equals("Keep-Alive", StringComparison.OrdinalIgnoreCase) then   
                 webRequest.KeepAlive <- true
             else 
@@ -26,6 +27,14 @@ type RequestBuilder(templateRepository: TemplateRepository) =
         | "Date" ->     
             let date = ref DateTime.Now
             if DateTime.TryParse(headerValue, date) then webRequest.Date <- !date
+        | "Cookie" ->
+            let chunks = headerValue.Split('=')
+            let cookieName = chunks.[0]
+            let cookieValue = String.Join("=", chunks |> Seq.skip 1)
+            let cookie = new Cookie(cookieName, cookieValue, Domain = webRequest.RequestUri.Host)
+            if webRequest.CookieContainer = null then
+                webRequest.CookieContainer <- new CookieContainer()
+            webRequest.CookieContainer.Add(cookie)
         | "Expect" -> 
             // 100-Continue must be setted with the System.Net.ServicePointManager.Expect100Continue Setted to true
             // see http://haacked.com/archive/2004/05/15/http-web-request-expect-100-continue.aspx
@@ -50,7 +59,7 @@ type RequestBuilder(templateRepository: TemplateRepository) =
 
     /// Create the request according to the specified template
     member this.Build(username: String, password: String, templateName: String, oracleName: String, url: String) =
-        let testRequest = new TestRequest(username, password, Template = templateName, Oracle = oracleName)
+        let testRequest = new TestRequest(username, password, url, Template = templateName, Oracle = oracleName)
 
         let initializeRequest = fun () ->
             let template = templateRepository.Get(testRequest)
@@ -63,9 +72,11 @@ type RequestBuilder(templateRepository: TemplateRepository) =
             let (httpMethod, path, protocolVersion) = (chunks.[0], chunks.[1], chunks.[2])
             let completeUrl = new Uri(new Uri(url), path.Substring(1))
             let httpWebRequest = WebRequest.Create(completeUrl) :?> HttpWebRequest
+            
             httpWebRequest.Method <- httpMethod
             httpWebRequest.AllowAutoRedirect <- false
             httpWebRequest.Timeout <- Configuration.timeout
+            
             if Uri.IsWellFormedUriString(Configuration.proxy, UriKind.Absolute) then
                 httpWebRequest.Proxy <- new WebProxy(Configuration.proxy)
 

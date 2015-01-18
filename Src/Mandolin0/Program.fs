@@ -32,6 +32,7 @@ with
 module Program =
 
     let _syncRoot = new Object()
+    let _nextCursorTopForUsername = ref 0
     let mutable _updateProgressBarCallback : (unit -> unit) option = None
 
     let printHeader() =
@@ -65,12 +66,12 @@ module Program =
         for oracle in oracleRepository.GetAllNames() do
             Console.WriteLine("\t{0}", oracle)
 
-    let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (numOfWorkers: Int32) =
+    let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (reqPerMinute: Int32, numOfWorkers: Int32) =
         lock _syncRoot (fun () ->
             let (savedLeft, savedTop) = (Console.CursorLeft, Console.CursorTop)
             Console.CursorLeft <- left
             Console.CursorTop <- top
-            Console.WriteLine("Req/s: {0}", numOfWorkers.ToString().PadRight(10, ' '))
+            Console.WriteLine("Req/s: {0,-3} - #Workers: {1,-3}", reqPerMinute.ToString().PadRight(3, ' '), numOfWorkers.ToString().PadRight(10, ' '))
             Console.CursorLeft <- savedLeft
             Console.CursorTop <- savedTop
         )
@@ -78,6 +79,8 @@ module Program =
     let printProgressBar(username: String, totalPoint: Int32) =
         // write the progress bar skeleton
         let defaultProgressBarLen = 45
+        Console.CursorTop <- !_nextCursorTopForUsername
+        incr _nextCursorTopForUsername
 
         Console.WriteLine()
         Console.Write("{0,-10} ", username.Substring(0, min 10 username.Length))
@@ -105,8 +108,9 @@ module Program =
 
             if progressBarLeftPosition > 0 then
                 // write the = character
-                Console.CursorLeft <- newLeft
-                Console.Write("=")
+                Console.CursorLeft <- progressBarStartPosition + 1
+                while Console.CursorLeft <= newLeft do
+                    Console.Write("=")
 
             // write the percentage
             Console.CursorLeft <- progressBarEndPosition + 1
@@ -143,6 +147,7 @@ module Program =
             Console.WriteLine()
             Console.WriteLine("Username: {0}", testRequest.Username)
             Console.WriteLine("Password: {0}", testRequest.Password)
+            _nextCursorTopForUsername := Console.CursorTop + 1
             Console.CursorLeft <- left
             Console.CursorTop <- top
         )
@@ -197,7 +202,7 @@ module Program =
                     Console.WriteLine("Done")
                 else
                     Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
-                    
+                  
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
                 let passwordsFile : String option ref = ref <| Some(Configuration.passwordsDictionary)
@@ -258,7 +263,8 @@ module Program =
                     Console.WriteLine("Template: {0} - Oracle: {1}", (!template).Value, (!oracle).Value)
                     Console.WriteLine()
                     let printCurrentNumberOfRequestsPerMinuteHandler = printCurrentNumberOfRequestsPerMinute (Console.CursorLeft) (Console.CursorTop)
-                    bruteforcer.RequestPerMinute.Add(printCurrentNumberOfRequestsPerMinuteHandler)
+                    bruteforcer.ProcessStatistics.Add(printCurrentNumberOfRequestsPerMinuteHandler)
+                    _nextCursorTopForUsername := Console.CursorTop
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult

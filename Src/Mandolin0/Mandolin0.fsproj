@@ -49,12 +49,11 @@
     <Compile Include="RequestBuilder.fs" />
     <Compile Include="OracleRepository.fs" />
     <Compile Include="TestRequestRepository.fs" />
+    <Compile Include="AccountBruteforce.fs" />
     <Compile Include="Bruteforcer.fs" />
     <Compile Include="UpdateChecker.fs" />
     <Compile Include="Program.fs" />
-    <None Include="mandolin0.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="mandolin0.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

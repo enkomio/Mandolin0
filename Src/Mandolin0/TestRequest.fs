@@ -5,7 +5,7 @@ open System.Text
 open System.Net
 
 /// This class represent a test case of a give username and password
-type TestRequest(username: String, password: String) = 
+type TestRequest(username: String, password: String, url: String) = 
 
     let readResponseAsText(httpWebResponse: HttpWebResponse) =
         async {
@@ -25,6 +25,7 @@ type TestRequest(username: String, password: String) =
             return sb.ToString()
         }
 
+    member val Url = url with get
     member val Username = username with get
     member val Password = password with get
     member val Template = "Default" with get, set

@@ -10,5 +10,5 @@ open System.Runtime.CompilerServices
 [<AssemblyProduct("")>]
 [<AssemblyCopyright("Antonio Parata")>]
 [<AssemblyTrademark("")>]
-[<AssemblyVersion("1.1.0.0")>]
+[<AssemblyVersion("1.2.0.0")>]
 ()

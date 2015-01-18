@@ -30,7 +30,7 @@ module Configuration =
     let mutable dataDirectory = "Data"
     let mutable templatesDirectory = Path.Combine(dataDirectory, "Templates")
     let mutable oraclesDirectory = Path.Combine(dataDirectory, "Oracles")
-    let mutable timeout = 10000
+    let mutable timeout = 5000
     let mutable proxy = String.Empty
     let mutable private _properties = new Dictionary<String, String>()
 
