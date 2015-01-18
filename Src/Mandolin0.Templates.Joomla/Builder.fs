@@ -12,7 +12,7 @@ open System.Threading
 
 type Builder() = 
 
-    static let retrieveTemplateContent() =
+    static let retrieveTemplateContent =
         let assembly =  Assembly.GetAssembly(typeof<Builder>)
         let codeBase = assembly.CodeBase
         let uri = new UriBuilder(codeBase)
@@ -22,7 +22,8 @@ type Builder() =
 
         if not <| File.Exists(filename) then raise <| new ApplicationException("Unable to find the Joomla template file: " + filename)
         let baseTemplateContent = File.ReadAllText(filename)
-        baseTemplateContent
+        fun () ->
+            baseTemplateContent
    
     static let getNeededData =
         // ignore invalid certificates
