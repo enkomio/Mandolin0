@@ -1,4 +1,10 @@
-# Version 1.1.0 (2015-1-X)
+# Version 1.2.0 (2015-1-18)
+
+* Implemented a new bruteforce algorithm
+* Possibility to create Template in .NET assembly form other than plain TXT file
+* Modified the code to check for new updates
+
+# Version 1.1.0 (2015-1-16)
 
 * Improved performance
 * Fixed a deadlock bug
