@@ -1,6 +1,7 @@
 ﻿namespace Mandolin0
 
 open System
+open System.Threading
 open System.Text
 open System.Net
 
@@ -53,9 +54,11 @@ type TestRequest(username: String, password: String, url: String) =
                             let! tmpText =  readResponseAsText(webException.Response :?> HttpWebResponse)
                             responseText := tmpText
                             completed := true
-
                         elif !numOfRetry > 10 then
-                            raise <| new WebException("Unable to retrieve result from the server, maybe are you DOSsing the server?.")
+                            Thread.Sleep(1000)
+                            numOfRetry := 0
+                        else
+                            Thread.Sleep(200)
 
             return !responseText
         }
