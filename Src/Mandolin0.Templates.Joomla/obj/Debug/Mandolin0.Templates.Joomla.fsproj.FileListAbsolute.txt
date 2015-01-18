@@ -1,0 +1,7 @@
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\bin\Debug\Mandolin0.Templates.Joomla.XML
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\bin\Debug\Mandolin0.Templates.Joomla.dll
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\bin\Debug\Mandolin0.Templates.Joomla.pdb
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\bin\Debug\FSharp.Core.dll
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\bin\Debug\FSharp.Core.xml
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\obj\Debug\Mandolin0.Templates.Joomla.dll
+C:\Workspace\Mandolin0\Src\Mandolin0.Templates.Joomla\obj\Debug\Mandolin0.Templates.Joomla.pdb
