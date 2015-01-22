@@ -26,6 +26,8 @@ module UpdateChecker =
             let updateUrl = new Uri("https://github.com/enkomio/Mandolin0/releases/latest")
             let webRequest = WebRequest.Create(updateUrl) :?> HttpWebRequest
             webRequest.AllowAutoRedirect <- true
+            webRequest.UserAgent <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            RequestBuilder.SetConfigurationPreferences(webRequest)
 
             use! webResponse = webRequest.GetResponseAsync() |> Async.AwaitTask
 
@@ -40,6 +42,8 @@ module UpdateChecker =
             // retrieve last version
             let updateUrl = new Uri("http://enkomio.github.io/Mandolin0/kb.xml")
             let webRequest = WebRequest.Create(updateUrl) :?> HttpWebRequest
+            webRequest.UserAgent <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            RequestBuilder.SetConfigurationPreferences(webRequest)
 
             use! webResponse = webRequest.GetResponseAsync() |> Async.AwaitTask
 

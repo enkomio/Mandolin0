@@ -3,6 +3,7 @@
 open System
 open System.Text
 open System.Reflection
+open System.Runtime.InteropServices
 open Autofac
 open Nessos.UnionArgParser
 
@@ -29,11 +30,31 @@ with
             | List_Oracles -> "show all the available oracles"
             | Version -> "show the full version"
 
+type ConsoleCtrlDelegate = delegate of Int32 -> Boolean
+
 module Program =
 
     let _syncRoot = new Object()
     let _nextCursorTopForUsername = ref 0
+    let _restoreSessionConsoleTop = ref 0
     let mutable _updateProgressBarCallback : (unit -> unit) option = None
+    
+    [<DllImport("kernel32.dll")>]
+    extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate handlerRoutine, bool add)
+    
+    let handleCtrCancelEvent (saveCallback: unit -> unit) (deleteCallback: unit -> unit) _ =
+        lock _syncRoot (fun () ->           
+            Console.WriteLine()
+            Console.WriteLine()
+            Console.Write("Do you want to save the current session? [Y/N] ")
+            let saveSession = Console.ReadKey().KeyChar.ToString().Equals("Y", StringComparison.OrdinalIgnoreCase)
+            if saveSession then
+                saveCallback()
+            else
+                deleteCallback()
+            Console.WriteLine()
+        )
+        false
 
     let printHeader() =
         let version = Assembly.GetEntryAssembly().GetName().Version.ToString( 2 )
@@ -65,6 +86,14 @@ module Program =
         Console.WriteLine()
         for oracle in oracleRepository.GetAllNames() do
             Console.WriteLine("\t{0}", oracle)
+
+    let continueSession() =
+        let savedTop = Console.CursorTop
+        Console.CursorTop <- !_restoreSessionConsoleTop
+        Console.Write("A previous session already exists, do you want to continue? [Y/N] ")
+        let response = Console.ReadKey().KeyChar.ToString()
+        Console.CursorTop <- savedTop
+        response.Equals("Y", StringComparison.OrdinalIgnoreCase)
 
     let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (reqPerMinute: Int32, numOfWorkers: Int32) =
         lock _syncRoot (fun () ->
@@ -176,6 +205,10 @@ module Program =
                 containerBuilder.RegisterType<OracleRepository>()
                     .WithParameter("oracleDirectory", Configuration.oraclesDirectory),
                         
+                containerBuilder.RegisterType<SessionManager>()
+                    .WithParameter("continueSessionCallback", continueSession)
+                    .SingleInstance(),
+
                 containerBuilder.RegisterType<Bruteforcer>()
             )
 
@@ -262,11 +295,22 @@ module Program =
                     Console.WriteLine("Bruteforce: {0}", (!url).Value)
                     Console.WriteLine("Template: {0} - Oracle: {1}", (!template).Value, (!oracle).Value)
                     Console.WriteLine()
+                    _restoreSessionConsoleTop := Console.CursorTop
+                    Console.WriteLine()
+                    Console.WriteLine()
                     let printCurrentNumberOfRequestsPerMinuteHandler = printCurrentNumberOfRequestsPerMinute (Console.CursorLeft) (Console.CursorTop)
                     bruteforcer.ProcessStatistics.Add(printCurrentNumberOfRequestsPerMinuteHandler)
                     _nextCursorTopForUsername := Console.CursorTop
+                    
+                    // intercept the Ctrl+C signal
+                    let sessionManager = container.Resolve<SessionManager>()
+                    let saveCallBack = fun () -> sessionManager.SaveSession((!url).Value, (!oracle).Value, (!template).Value)
+                    let deleteCallback = fun () -> sessionManager.DeleteSession((!url).Value, (!oracle).Value, (!template).Value)
+                    let handler = ConsoleCtrlDelegate(handleCtrCancelEvent saveCallBack deleteCallback)
+                    ignore (SetConsoleCtrlHandler(handler, true))   
 
                     bruteforcer.Run((!url).Value) 
+                    deleteCallback()
                     Configuration.okResult
             else
                 let usage = parser.Usage()

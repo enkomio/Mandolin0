@@ -4,7 +4,7 @@ open System
 open System.Collections.Concurrent
 open System.Threading
 
-type internal AccountBruteforce(username: String, oracle: Oracle, testList: TestRequest list) =
+type internal AccountBruteforce(username: String, oracle: Oracle, testList: TestRequest list, sessionManager: SessionManager) =
     
     let _callBackAdjustWorkerTimeout = 2000
 
@@ -19,7 +19,7 @@ type internal AccountBruteforce(username: String, oracle: Oracle, testList: Test
     let _processCompletedResetEvent = new ManualResetEventSlim()
     let _testRequestQueue = new ConcurrentQueue<TestRequest>(testList)
     let _userPasswordFound = ref 0L
-
+    
     // events
     let _startTest = new Event<TestRequest>()
     let _endTest = new Event<TestRequest>()
@@ -52,6 +52,7 @@ type internal AccountBruteforce(username: String, oracle: Oracle, testList: Test
                 if _testRequestQueue.TryDequeue(testRequest) then
                     Interlocked.Increment(_numOfRunningWorkers) |> ignore
                     _startTest.Trigger(!testRequest)
+                    sessionManager.IncrementIndex()
                     do! testAccount(!testRequest)
                     Interlocked.Increment(_averageRequestsPerTimeout) |> ignore
                     _endTest.Trigger(!testRequest)

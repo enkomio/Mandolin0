@@ -48,6 +48,7 @@
     <Compile Include="TemplateRepository.fs" />
     <Compile Include="RequestBuilder.fs" />
     <Compile Include="OracleRepository.fs" />
+    <Compile Include="SessionManager.fs" />
     <Compile Include="TestRequestRepository.fs" />
     <Compile Include="AccountBruteforce.fs" />
     <Compile Include="Bruteforcer.fs" />

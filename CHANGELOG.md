@@ -1,3 +1,7 @@
+# Version 1.2.1 (2015-1-X)
+
+* Minor Bug fixing on Joomla binary template generator
+
 # Version 1.2.0 (2015-1-18)
 
 * Implemented a new bruteforce algorithm

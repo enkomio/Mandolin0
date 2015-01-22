@@ -5,7 +5,7 @@ open System.Collections.Generic
 open System.IO
 
 /// Read all the username and password and create the list of request to send in the bruteforce process
-type TestRequestRepository(usernameFile: String, passwordFile: String, templateName: String, oracleName: String, requestBuilder: RequestBuilder) = 
+type TestRequestRepository(usernameFile: String, passwordFile: String, templateName: String, oracleName: String, requestBuilder: RequestBuilder, sessionManager: SessionManager) = 
 
     let createTestRequest templateName oracleName url username  password =
             requestBuilder.Build(username, password, templateName, oracleName, url)
@@ -26,13 +26,17 @@ type TestRequestRepository(usernameFile: String, passwordFile: String, templateN
             readAll(usernames, usernameFile)
             readAll(passwords, passwordFile)
 
+            let considerPasswordIndex = sessionManager.ConsiderUsernameAndPasswordIndex url oracleName templateName
+
             let testRequestFactory = createTestRequest templateName oracleName url
             for username in usernames do
 
                 // read all requests in advance in order to speed up the bruteforce later
                 let requests = new List<TestRequest>()
+                let passwordIndex = ref 0
                 for password in passwords do
-                    if not <| String.IsNullOrEmpty(password) then
+                    if not(String.IsNullOrEmpty(password)) && considerPasswordIndex(username, !passwordIndex) then
+                        incr passwordIndex
                         let testRequest = testRequestFactory username password
                         requests.Add(testRequest)
 

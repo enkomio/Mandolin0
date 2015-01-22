@@ -57,6 +57,11 @@ type RequestBuilder(templateRepository: TemplateRepository) =
             addHttpHeader(headerName, headerValue, httpWebRequest)
             parseHeaders(httpWebRequest, stringReader)
 
+    static member SetConfigurationPreferences(httpWebRequest: HttpWebRequest) =
+        httpWebRequest.Timeout <- Configuration.timeout            
+        if Uri.IsWellFormedUriString(Configuration.proxy, UriKind.Absolute) then
+            httpWebRequest.Proxy <- new WebProxy(Configuration.proxy)
+
     /// Create the request according to the specified template
     member this.Build(username: String, password: String, templateName: String, oracleName: String, url: String) =
         let testRequest = new TestRequest(username, password, url, Template = templateName, Oracle = oracleName)
@@ -75,10 +80,7 @@ type RequestBuilder(templateRepository: TemplateRepository) =
             
             httpWebRequest.Method <- httpMethod
             httpWebRequest.AllowAutoRedirect <- false
-            httpWebRequest.Timeout <- Configuration.timeout
-            
-            if Uri.IsWellFormedUriString(Configuration.proxy, UriKind.Absolute) then
-                httpWebRequest.Proxy <- new WebProxy(Configuration.proxy)
+            RequestBuilder.SetConfigurationPreferences(httpWebRequest)
 
             let version = protocolVersion.Split('/').[1]
             httpWebRequest.ProtocolVersion <- Version.Parse(version)

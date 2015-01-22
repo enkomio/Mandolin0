@@ -12,7 +12,7 @@ open System.Threading.Tasks
 open Microsoft.FSharp.Control
 
 /// Bruteforce class, run all the test and notify if some password succeed
-type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository: OracleRepository) =
+type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository: OracleRepository, sessionManager: SessionManager) =
 
     let _startTestAccount = new Event<String * Int32>()
     let _processStatistics = new Event<Int32 * Int32>()
@@ -44,7 +44,8 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
                 _startTestAccount.Trigger(testReq.Username, usernameTestRequests.Length)
 
                 let oracle = oracleRepository.Get(testReq.Oracle)
-                let accountBruteforce = new AccountBruteforce(testReq.Username, oracle, usernameTestRequests)
+                sessionManager.SetCurrentUsername(testReq.Username)
+                let accountBruteforce = new AccountBruteforce(testReq.Username, oracle, usernameTestRequests, sessionManager)
 
                 // connect event handlers
                 accountBruteforce.StartTest.Add(_startTest.Trigger)
