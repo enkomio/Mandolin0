@@ -14,11 +14,14 @@ type private SavedSession =
         Filename : String 
     }
 
-    member this.Check(username: String, passwordIndex: Int32) =
-        if this.Username.Equals(username, StringComparison.Ordinal) then
-            this.Index < passwordIndex
-        else 
-            true
+    member this.Check =
+        let usernameFound = ref false
+        fun (username: String, passwordIndex: Int32) ->
+            if this.Username.Equals(username, StringComparison.Ordinal) then
+                usernameFound := true
+                this.Index < passwordIndex
+            else 
+                !usernameFound
 
 type SessionManager(continueSessionCallback: unit -> Boolean) =
     let x str = XName.Get str

@@ -235,12 +235,15 @@ module Program =
                 // check updates
                 Console.WriteLine()
                 Console.Write("Check for updates...")
-                if UpdateChecker.checkIfLastVersion() then
-                    // try to update th KB
-                    UpdateChecker.updateKnowledgeBase(configurationFilename, fun _ -> Console.Write("."))
-                    Console.WriteLine("Done")
-                else
-                    Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
+                try
+                    if UpdateChecker.checkIfLastVersion() then
+                        // try to update th KB
+                        UpdateChecker.updateKnowledgeBase(configurationFilename, fun _ -> Console.Write("."))
+                        Console.WriteLine("Done")
+                    else
+                        Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
+                with
+                    e -> Console.WriteLine("Some error occoured during the update: " + e.Message)
                   
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
