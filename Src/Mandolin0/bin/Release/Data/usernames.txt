@@ -1,0 +1,14 @@
+nick.riviera
+admin
+administrator
+root
+in
+Admin
+webmaster
+Administrator
+test
+user
+support
+adm
+guest
+super

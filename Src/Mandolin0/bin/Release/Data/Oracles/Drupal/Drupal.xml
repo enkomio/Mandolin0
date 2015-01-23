@@ -1,0 +1,8 @@
+﻿<Oracle>
+	<NegativeMatch>
+		<Text>password</Text>
+	</NegativeMatch>
+	<PositiveMatch>
+		<Text>302</Text>
+	</PositiveMatch>
+</Oracle>
