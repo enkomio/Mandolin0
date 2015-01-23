@@ -12,7 +12,7 @@ module Configuration =
     let private readString (elem: XElement) (name: String) =
         let element = elem.Element(x(name))
         if element <> null then
-            element.Value
+            element.Value.Trim()
         else
             String.Empty
 
@@ -20,7 +20,7 @@ module Configuration =
         let element = elem.Element(x(name))
         if element <> null then
             let result = ref 0
-            Int32.TryParse(element.Value, result) |> ignore
+            Int32.TryParse(element.Value.Trim(), result) |> ignore
             !result
         else
             0

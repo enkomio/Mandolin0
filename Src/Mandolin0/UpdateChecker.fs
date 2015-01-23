@@ -20,6 +20,11 @@ module UpdateChecker =
     let mutable private _lastKB: String option = None
     let mutable private _lastKBUpdateUrl: String option = None
 
+    do
+        ServicePointManager.DefaultConnectionLimit <- Int32.MaxValue
+        ServicePointManager.Expect100Continue <- true
+        ServicePointManager.MaxServicePoints <- Int32.MaxValue
+
     let private retrieveLastVersion() =
         async {
             // retrieve last version

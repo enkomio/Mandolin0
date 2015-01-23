@@ -36,9 +36,10 @@ type TestRequestRepository(usernameFile: String, passwordFile: String, templateN
                 let passwordIndex = ref 0
                 for password in passwords do
                     if not(String.IsNullOrEmpty(password)) && considerPasswordIndex(username, !passwordIndex) then
-                        incr passwordIndex
                         let testRequest = testRequestFactory username password
                         requests.Add(testRequest)
+                    
+                    incr passwordIndex
 
                 yield (requests |> Seq.toList)
         }

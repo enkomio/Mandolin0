@@ -37,7 +37,7 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
     member this.ProcessStatistics = _processStatistics.Publish
 
     member this.Run(url: String) =
-        
+
         for usernameTestRequests in testRequestRepository.GetAll(url) do
             if not <| usernameTestRequests.IsEmpty then
                 let testReq = usernameTestRequests.Head

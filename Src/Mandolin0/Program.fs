@@ -47,8 +47,11 @@ module Program =
             Console.WriteLine()
             Console.WriteLine()
             Console.Write("Do you want to save the current session? [Y/N] ")
-            let saveSession = Console.ReadKey().KeyChar.ToString().Equals("Y", StringComparison.OrdinalIgnoreCase)
-            if saveSession then
+            let saveSession = ref String.Empty
+            while !saveSession <> "Y" && !saveSession <> "N" do
+               saveSession := Console.ReadKey().KeyChar.ToString().ToUpper()
+
+            if (!saveSession).Equals("Y", StringComparison.Ordinal) then
                 saveCallback()
             else
                 deleteCallback()
@@ -91,9 +94,12 @@ module Program =
         let savedTop = Console.CursorTop
         Console.CursorTop <- !_restoreSessionConsoleTop
         Console.Write("A previous session already exists, do you want to continue? [Y/N] ")
-        let response = Console.ReadKey().KeyChar.ToString()
+        let restoreSession = ref String.Empty
+        while !restoreSession <> "Y" && !restoreSession <> "N" do
+            restoreSession := Console.ReadKey().KeyChar.ToString().ToUpper()
+
         Console.CursorTop <- savedTop
-        response.Equals("Y", StringComparison.OrdinalIgnoreCase)
+        (!restoreSession).Equals("Y", StringComparison.Ordinal)
 
     let printCurrentNumberOfRequestsPerMinute (left: Int32) (top: Int32) (reqPerMinute: Int32, numOfWorkers: Int32) =
         lock _syncRoot (fun () ->

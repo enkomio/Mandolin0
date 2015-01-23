@@ -9,14 +9,14 @@ open System.Linq
 
 type private SavedSession =
     { 
-        Index : Int32
+        mutable Index : Int32
         Username: String
         Filename : String 
     }
 
     member this.Check(username: String, passwordIndex: Int32) =
         if this.Username.Equals(username, StringComparison.Ordinal) then
-            this.Index >= passwordIndex
+            this.Index < passwordIndex
         else 
             true
 
@@ -28,6 +28,7 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
     let _continueSessionCallbackCalled = ref false
     let _wantToRestoreSession = ref false
     let _sessions = new Dictionary<String * String * String, SavedSession>()
+    let mutable _lastRetrievedSession: SavedSession option = None
 
     do
         // load all existing session
@@ -54,21 +55,24 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
                 _continueSessionCallbackCalled := true
             
             if !_wantToRestoreSession then
-                let session = _sessions.[url, oracle, template]
-                session.Check(username, passwordIndex)
+                _lastRetrievedSession <- Some <| _sessions.[url, oracle, template]
+                _lastRetrievedSession.Value.Check(username, passwordIndex)
             else
                 this.DeleteSession(url, oracle, template)
                 true
         else
+            _lastRetrievedSession <- None
             true
 
     member this.IncrementIndex() =
         Interlocked.Increment(_currentIndex) |> ignore
 
     member this.SetCurrentUsername(username: String) =
-        _currentIndex := 0
+        _currentIndex := 
+            if _lastRetrievedSession.IsSome then _lastRetrievedSession.Value.Index
+            else 0
         _username := username
-
+        
     member this.DeleteSession(url: String, oracle: String, template: String) =
         if _sessions.ContainsKey(url, oracle, template) then
             let session = _sessions.[url, oracle, template]
@@ -84,6 +88,7 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
             _sessions.Add((url, oracle, template), { Index = !_currentIndex; Username = !_username; Filename = sessionFile })
         
         let session = _sessions.[url, oracle, template]
+        session.Index <- !_currentIndex
         
         let doc =
           new XDocument(
