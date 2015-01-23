@@ -19,7 +19,8 @@
     <Externalconsole>true</Externalconsole>
     <Tailcalls>false</Tailcalls>
     <PlatformTarget>x86</PlatformTarget>
-    <StartArguments>-w http://demo.phpmyadmin.net/STABLE/ --template PhpMyAdmin</StartArguments>
+    <StartArguments>
+    </StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugSymbols>false</DebugSymbols>
