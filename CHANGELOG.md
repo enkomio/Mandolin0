@@ -1,4 +1,4 @@
-# Version 1.2.1 (2015-1-23)
+# Version 1.2.1 (2015-1-24)
 
 * Implemented capability to save current bruteforce session
 * Minor Bug fixing on Joomla binary template generator
