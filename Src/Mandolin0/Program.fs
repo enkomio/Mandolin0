@@ -252,7 +252,7 @@ module Program =
                 Configuration.okResult
             elif  arguments |> List.exists (fun m -> match m with Url _ -> true | _ -> false) then
                 
-                //checkForUpdates(configurationFilename)
+                checkForUpdates(configurationFilename)
                   
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
