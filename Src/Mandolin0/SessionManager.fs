@@ -99,7 +99,7 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
                 _lastRetrievedSession <- Some <| _sessions.[url, oracle, template]
                 _lastRetrievedSession.Value.Check(username, passwordIndex)
             else
-                deleteSession(url, oracle, template)
+                this.DeleteResult(url, oracle, template)
                 true
         else
             _lastRetrievedSession <- None
@@ -128,6 +128,6 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
 
     member this.CloseSession() =
         match !_operation with
-        | SessionSavingOperation.Delete(url, oracle, template) -> saveSession(url, oracle, template)
-        | SessionSavingOperation.Saved(url, oracle, template) -> deleteSession(url, oracle, template)
+        | SessionSavingOperation.Saved(url, oracle, template) -> saveSession(url, oracle, template)
+        | SessionSavingOperation.Delete(url, oracle, template) -> deleteSession(url, oracle, template)
         | _ -> ()

@@ -37,12 +37,13 @@ module Program =
     let _syncRoot = new Object()
     let _nextCursorTopForUsername = ref 0
     let _restoreSessionConsoleTop = ref 0
+    let mutable _consoleCtrlDelegateHandler: ConsoleCtrlDelegate option = None
     let mutable _updateProgressBarCallback : (unit -> unit) option = None
     
     [<DllImport("kernel32.dll")>]
     extern Boolean SetConsoleCtrlHandler(ConsoleCtrlDelegate handlerRoutine, Boolean add)
     
-    let handleCtrCancelEvent (sessionManager: SessionManager) (saveCallback: unit -> unit) (deleteCallback: unit -> unit) args =
+    let handleCtrCancelEvent (sessionManager: SessionManager) (saveCallback: unit -> unit) (deleteCallback: unit -> unit) _ =
         lock _syncRoot (fun () ->           
             Console.WriteLine()
             Console.WriteLine()
@@ -58,10 +59,11 @@ module Program =
 
             // interrupt the process asap 
             sessionManager.InterruptProcess()
-            Console.WriteLine("...shutting down")
+            Console.WriteLine()
+            Console.WriteLine("Shutting down...")
 
-            // return false to avoid to interrupt the process in a brutal way
-            false
+            // return true to avoid to interrupt the process in a brutal way
+            true
         )
 
     let printHeader() =
@@ -192,6 +194,19 @@ module Program =
             Console.CursorTop <- top
         )
 
+    let checkForUpdates(configurationFilename: String) =
+        Console.WriteLine()
+        Console.Write("Check for updates...")
+        try
+            if UpdateChecker.checkIfLastVersion() then
+                // try to update th KB
+                UpdateChecker.updateKnowledgeBase(configurationFilename, fun _ -> Console.Write("."))
+                Console.WriteLine("Done")
+            else
+                Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
+        with
+            e -> Console.WriteLine("Some error occoured during the update: " + e.Message)
+
     [<EntryPoint>]
     let main argv = 
         let parser = UnionArgParser.Create<CLIArguments>()
@@ -237,18 +252,7 @@ module Program =
                 Configuration.okResult
             elif  arguments |> List.exists (fun m -> match m with Url _ -> true | _ -> false) then
                 
-                // check updates
-                Console.WriteLine()
-                Console.Write("Check for updates...")
-                try
-                    if UpdateChecker.checkIfLastVersion() then
-                        // try to update th KB
-                        UpdateChecker.updateKnowledgeBase(configurationFilename, fun _ -> Console.Write("."))
-                        Console.WriteLine("Done")
-                    else
-                        Console.WriteLine("You haven't installed the last version of Mandolin0, unable to update KB")
-                with
-                    e -> Console.WriteLine("Some error occoured during the update: " + e.Message)
+                //checkForUpdates(configurationFilename)
                   
                 // read arguments used to run the bruteforcer
                 let usernamesFile : String option ref = ref <| Some(Configuration.usernamesDictionary)
@@ -320,8 +324,8 @@ module Program =
                     let sessionManager = container.Resolve<SessionManager>()
                     let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
                     let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
-                    let handler = ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
-                    ignore(SetConsoleCtrlHandler(handler, true))   
+                    _consoleCtrlDelegateHandler <- Some <| ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
+                    ignore(SetConsoleCtrlHandler(_consoleCtrlDelegateHandler.Value, true))   
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult
