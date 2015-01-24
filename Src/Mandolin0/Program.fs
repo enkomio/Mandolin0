@@ -40,9 +40,9 @@ module Program =
     let mutable _updateProgressBarCallback : (unit -> unit) option = None
     
     [<DllImport("kernel32.dll")>]
-    extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate handlerRoutine, bool add)
+    extern Boolean SetConsoleCtrlHandler(ConsoleCtrlDelegate handlerRoutine, Boolean add)
     
-    let handleCtrCancelEvent (saveCallback: unit -> unit) (deleteCallback: unit -> unit) _ =
+    let handleCtrCancelEvent (sessionManager: SessionManager) (saveCallback: unit -> unit) (deleteCallback: unit -> unit) args =
         lock _syncRoot (fun () ->           
             Console.WriteLine()
             Console.WriteLine()
@@ -55,9 +55,14 @@ module Program =
                 saveCallback()
             else
                 deleteCallback()
-            Console.WriteLine()
+
+            // interrupt the process asap 
+            sessionManager.InterruptProcess()
+            Console.WriteLine("...shutting down")
+
+            // return false to avoid to interrupt the process in a brutal way
+            false
         )
-        false
 
     let printHeader() =
         let version = Assembly.GetEntryAssembly().GetName().Version.ToString( 2 )
@@ -313,13 +318,12 @@ module Program =
                     
                     // intercept the Ctrl+C signal
                     let sessionManager = container.Resolve<SessionManager>()
-                    let saveCallBack = fun () -> sessionManager.SaveSession((!url).Value, (!oracle).Value, (!template).Value)
-                    let deleteCallback = fun () -> sessionManager.DeleteSession((!url).Value, (!oracle).Value, (!template).Value)
-                    let handler = ConsoleCtrlDelegate(handleCtrCancelEvent saveCallBack deleteCallback)
-                    ignore (SetConsoleCtrlHandler(handler, true))   
+                    let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
+                    let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
+                    let handler = ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
+                    ignore(SetConsoleCtrlHandler(handler, true))   
 
                     bruteforcer.Run((!url).Value) 
-                    deleteCallback()
                     Configuration.okResult
             else
                 let usage = parser.Usage()

@@ -23,6 +23,11 @@ type private SavedSession =
             else 
                 !usernameFound
 
+type private SessionSavingOperation =
+    | Nothing
+    | Saved of String * String * String
+    | Delete of String * String * String
+
 type SessionManager(continueSessionCallback: unit -> Boolean) =
     let x str = XName.Get str
 
@@ -31,6 +36,8 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
     let _continueSessionCallbackCalled = ref false
     let _wantToRestoreSession = ref false
     let _sessions = new Dictionary<String * String * String, SavedSession>()
+    let _interruptProcess = ref 0L
+    let _operation = ref(SessionSavingOperation.Nothing)
     let mutable _lastRetrievedSession: SavedSession option = None
 
     do
@@ -51,39 +58,14 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
                     _sessions.Add((url, oracle, template), { Index = index; Username = username; Filename = filename })
                 with _ -> ()
 
-    member this.ConsiderUsernameAndPasswordIndex (url: String) (oracle: String) (template: String) (username: String, passwordIndex: Int32) =
-        if _sessions.ContainsKey(url, oracle, template) then
-            if not(!_continueSessionCallbackCalled) then
-                _wantToRestoreSession := continueSessionCallback()
-                _continueSessionCallbackCalled := true
-            
-            if !_wantToRestoreSession then
-                _lastRetrievedSession <- Some <| _sessions.[url, oracle, template]
-                _lastRetrievedSession.Value.Check(username, passwordIndex)
-            else
-                this.DeleteSession(url, oracle, template)
-                true
-        else
-            _lastRetrievedSession <- None
-            true
-
-    member this.IncrementIndex() =
-        Interlocked.Increment(_currentIndex) |> ignore
-
-    member this.SetCurrentUsername(username: String) =
-        _currentIndex := 
-            if _lastRetrievedSession.IsSome then _lastRetrievedSession.Value.Index
-            else 0
-        _username := username
-        
-    member this.DeleteSession(url: String, oracle: String, template: String) =
+    let deleteSession(url: String, oracle: String, template: String) =
         if _sessions.ContainsKey(url, oracle, template) then
             let session = _sessions.[url, oracle, template]
             let sessionFilename = Path.Combine("Sessions", session.Filename)
             if File.Exists(sessionFilename) then
                 File.Delete(sessionFilename)
 
-    member this.SaveSession(url: String, oracle: String, template: String) =
+    let saveSession(url: String, oracle: String, template: String) =
         if not <| Directory.Exists("Sessions") then Directory.CreateDirectory("Sessions") |> ignore
         if not <| _sessions.ContainsKey(url, oracle, template) then
             let now = DateTime.Now
@@ -107,3 +89,45 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
 
         File.WriteAllText(Path.Combine("Sessions", session.Filename), doc.ToString())
 
+    member this.ConsiderUsernameAndPasswordIndex (url: String) (oracle: String) (template: String) (username: String, passwordIndex: Int32) =
+        if _sessions.ContainsKey(url, oracle, template) then
+            if not(!_continueSessionCallbackCalled) then
+                _wantToRestoreSession := continueSessionCallback()
+                _continueSessionCallbackCalled := true
+            
+            if !_wantToRestoreSession then
+                _lastRetrievedSession <- Some <| _sessions.[url, oracle, template]
+                _lastRetrievedSession.Value.Check(username, passwordIndex)
+            else
+                deleteSession(url, oracle, template)
+                true
+        else
+            _lastRetrievedSession <- None
+            true
+
+    member this.IncrementIndex() =
+        Interlocked.Increment(_currentIndex) |> ignore
+
+    member this.SetCurrentUsername(username: String) =
+        _currentIndex := 
+            if _lastRetrievedSession.IsSome then _lastRetrievedSession.Value.Index
+            else 0
+        _username := username
+
+    member this.InterruptProcess() =
+        Interlocked.Exchange(_interruptProcess, 1L) |> ignore
+
+    member this.IsCancelRequested() =
+        Interlocked.Read(_interruptProcess) = 1L
+
+    member this.SaveResult(url: String, oracle: String, template: String) =
+        _operation := SessionSavingOperation.Saved(url, oracle, template)
+
+    member this.DeleteResult(url: String, oracle: String, template: String) =
+        _operation := SessionSavingOperation.Delete(url, oracle, template)
+
+    member this.CloseSession() =
+        match !_operation with
+        | SessionSavingOperation.Delete(url, oracle, template) -> saveSession(url, oracle, template)
+        | SessionSavingOperation.Saved(url, oracle, template) -> deleteSession(url, oracle, template)
+        | _ -> ()

@@ -27,12 +27,13 @@ type internal AccountBruteforce(username: String, oracle: Oracle, testList: Test
     let _processStatistics = new Event<Int32 * Int32>()
 
     let checkCompletation() =
-        if Interlocked.Read(_numOfRunningWorkers) = 0L then 
+        if Interlocked.Read(_numOfRunningWorkers) = 0L then
             _processCompletedResetEvent.Set()
                 
     let runWorker() =
         if Interlocked.Read(_userPasswordFound) = 1L || 
-            Interlocked.CompareExchange(_removeWorker, 0L, 1L) = 1L then
+            Interlocked.CompareExchange(_removeWorker, 0L, 1L) = 1L || 
+            sessionManager.IsCancelRequested() then
             false
         else 
             not <| _testRequestQueue.IsEmpty

@@ -39,7 +39,7 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
     member this.Run(url: String) =
 
         for usernameTestRequests in testRequestRepository.GetAll(url) do
-            if not <| usernameTestRequests.IsEmpty then
+            if not(usernameTestRequests.IsEmpty) && not(sessionManager.IsCancelRequested()) then
                 let testReq = usernameTestRequests.Head
                 _startTestAccount.Trigger(testReq.Username, usernameTestRequests.Length)
 
@@ -55,3 +55,5 @@ type Bruteforcer(testRequestRepository: TestRequestRepository, oracleRepository:
 
                 // run the bruteforce
                 accountBruteforce.Bruteforce()
+
+        sessionManager.CloseSession()
