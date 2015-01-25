@@ -1,6 +1,6 @@
 # Version 1.2.2 (2015-1-25)
 
-* Fixed bug on portability. Currently the session savig feature is enable only on Windows OS.
+* Fixed bug on portability. Currently the session saving feature is enable only on Windows OS.
 
 # Version 1.2.1 (2015-1-24)
 
