@@ -320,12 +320,17 @@ module Program =
                     bruteforcer.ProcessStatistics.Add(printCurrentNumberOfRequestsPerMinuteHandler)
                     _nextCursorTopForUsername := Console.CursorTop
                     
-                    // intercept the Ctrl+C signal
-                    let sessionManager = container.Resolve<SessionManager>()
-                    let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
-                    let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
-                    _consoleCtrlDelegateHandler <- Some <| ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
-                    ignore(SetConsoleCtrlHandler(_consoleCtrlDelegateHandler.Value, true))   
+                    let p = Environment.OSVersion.Platform
+                    match p with
+                    | PlatformID.MacOSX
+                    | PlatformID.Unix -> ()
+                    | _ ->
+                        // intercept the Ctrl+C signal
+                        let sessionManager = container.Resolve<SessionManager>()
+                        let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
+                        let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
+                        _consoleCtrlDelegateHandler <- Some <| ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
+                        ignore(SetConsoleCtrlHandler(_consoleCtrlDelegateHandler.Value, true))   
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult
