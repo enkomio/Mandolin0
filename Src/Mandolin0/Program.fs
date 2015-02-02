@@ -1,8 +1,10 @@
 ﻿namespace Mandolin0
 
 open System
+open System.Collections.Generic
 open System.Text
 open System.Reflection
+open System.Threading
 open System.Runtime.InteropServices
 open Autofac
 open Nessos.UnionArgParser
@@ -29,28 +31,49 @@ with
             | List_Templates -> "show all the available templates"
             | List_Oracles -> "show all the available oracles"
             | Version -> "show the full version"
-
-type ConsoleCtrlDelegate = delegate of Int32 -> Boolean
-
+            
 module Program =
 
     let _syncRoot = new Object()
     let _nextCursorTopForUsername = ref 0
     let _restoreSessionConsoleTop = ref 0
-    let mutable _consoleCtrlDelegateHandler: ConsoleCtrlDelegate option = None
-    let mutable _updateProgressBarCallback : (unit -> unit) option = None
+    let _readKeysHandlers = new SortedList<Int32, ConsoleKeyInfo -> unit>()
+    let mutable _updateProgressBarCallback : (unit -> unit) option = None    
     
-    [<DllImport("kernel32.dll")>]
-    extern Boolean SetConsoleCtrlHandler(ConsoleCtrlDelegate handlerRoutine, Boolean add)
-    
-    let handleCtrCancelEvent (sessionManager: SessionManager) (saveCallback: unit -> unit) (deleteCallback: unit -> unit) _ =
+    let readKeyDispatcher() =
+        while true do
+            let key = Console.ReadKey(true)
+            for handler in _readKeysHandlers do
+                handler.Value(key)
+
+    let createBlockingReadKey() =
+        let resetEvent = new ManualResetEventSlim(false)
+        let internalKey = ref(new ConsoleKeyInfo())
+
+        let readKey = 
+            fun () ->
+                resetEvent.Wait()
+                resetEvent.Reset()
+                !internalKey
+
+        let consumeKey =
+            fun (key: ConsoleKeyInfo) ->
+                internalKey := key
+                resetEvent.Set()
+
+        (readKey, consumeKey)
+                
+    let handleCtrCancelEvent (sessionManager: SessionManager) (saveCallback: unit -> unit) (deleteCallback: unit -> unit) =
+        let (readKey, consumeKey) = createBlockingReadKey()
+        _readKeysHandlers.Add(90, consumeKey)
+
         lock _syncRoot (fun () ->           
             Console.WriteLine()
             Console.WriteLine()
             Console.Write("Do you want to save the current session? [Y/N] ")
             let saveSession = ref String.Empty
             while !saveSession <> "Y" && !saveSession <> "N" do
-               saveSession := Console.ReadKey().KeyChar.ToString().ToUpper()
+               saveSession := readKey().KeyChar.ToString().ToUpper()
 
             if (!saveSession).Equals("Y", StringComparison.Ordinal) then
                 saveCallback()
@@ -98,12 +121,15 @@ module Program =
             Console.WriteLine("\t{0}", oracle)
 
     let continueSession() =
+        let (readKey, consumeKey) = createBlockingReadKey()
+        _readKeysHandlers.Add(80, consumeKey)
+
         let savedTop = Console.CursorTop
         Console.CursorTop <- !_restoreSessionConsoleTop
         Console.Write("A previous session already exists, do you want to continue? [Y/N] ")
         let restoreSession = ref String.Empty
         while !restoreSession <> "Y" && !restoreSession <> "N" do
-            restoreSession := Console.ReadKey().KeyChar.ToString().ToUpper()
+            restoreSession := readKey().KeyChar.ToString().ToUpper()
 
         Console.CursorTop <- savedTop
         (!restoreSession).Equals("Y", StringComparison.Ordinal)
@@ -320,16 +346,27 @@ module Program =
                     bruteforcer.ProcessStatistics.Add(printCurrentNumberOfRequestsPerMinuteHandler)
                     _nextCursorTopForUsername := Console.CursorTop
                     
-                    // intercept the Ctrl+C signal
-                    match Environment.OSVersion.Platform with
-                    | PlatformID.MacOSX
-                    | PlatformID.Unix -> ()
-                    | _ ->
-                        let sessionManager = container.Resolve<SessionManager>()
-                        let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
-                        let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
-                        _consoleCtrlDelegateHandler <- Some <| ConsoleCtrlDelegate(handleCtrCancelEvent sessionManager saveCallBack deleteCallback)
-                        ignore(SetConsoleCtrlHandler(_consoleCtrlDelegateHandler.Value, true))   
+                    // intercept the Ctrl+C signal through an input loop
+                    Console.TreatControlCAsInput <- true
+                    Console.CancelKeyPress.Add(fun _ -> ())
+
+                    let (readKey, consumeKey) = createBlockingReadKey()
+                    _readKeysHandlers.Add(10, consumeKey)
+
+                    let sessionManager = container.Resolve<SessionManager>()
+                    let saveCallBack = fun () -> sessionManager.SaveResult((!url).Value, (!oracle).Value, (!template).Value)
+                    let deleteCallback = fun () -> sessionManager.DeleteResult((!url).Value, (!oracle).Value, (!template).Value)
+                    async {
+                        while true do
+                            let c = readKey()
+                            if c.Modifiers = ConsoleModifiers.Control && c.Key.ToString().Equals("C", StringComparison.OrdinalIgnoreCase) then
+                                handleCtrCancelEvent sessionManager saveCallBack deleteCallback |> ignore
+                    } |> Async.Start
+
+                    // start the read key loop dispatcher
+                    async {
+                        readKeyDispatcher()
+                    } |> Async.Start
 
                     bruteforcer.Run((!url).Value) 
                     Configuration.okResult
