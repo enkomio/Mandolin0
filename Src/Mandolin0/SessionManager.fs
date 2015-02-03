@@ -7,21 +7,19 @@ open System.IO
 open System.Xml.Linq
 open System.Linq
 
-type private SavedSession =
-    { 
-        mutable Index : Int32
-        Username: String
-        Filename : String 
-    }
+type private SavedSession(index: Int32, username: String, filename: String) =
+    let mutable _usernameFound = false
 
-    member this.Check =
-        let usernameFound = ref false
-        fun (username: String, passwordIndex: Int32) ->
-            if this.Username.Equals(username, StringComparison.Ordinal) then
-                usernameFound := true
-                this.Index < passwordIndex
-            else 
-                !usernameFound
+    member this.Username = username
+    member this.Filename = filename
+    member val Index = index with get, set
+
+    member this.Check(currentUsername: String, passwordIndex: Int32) =
+        if username.Equals(currentUsername, StringComparison.Ordinal) then
+            _usernameFound <- true
+            this.Index < passwordIndex
+        else 
+            _usernameFound
 
 type private SessionSavingOperation =
     | Nothing
@@ -55,7 +53,7 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
                     let username = root.Element(x"username").Value
                     let index = Int32.Parse(root.Element(x"index").Value)
                     let filename = root.Element(x"filename").Value
-                    _sessions.Add((url, oracle, template), { Index = index; Username = username; Filename = filename })
+                    _sessions.Add((url, oracle, template), new SavedSession(index, username, filename))
                 with _ -> ()
 
     let deleteSession(url: String, oracle: String, template: String) =
@@ -70,7 +68,7 @@ type SessionManager(continueSessionCallback: unit -> Boolean) =
         if not <| _sessions.ContainsKey(url, oracle, template) then
             let now = DateTime.Now
             let sessionFile = String.Format("{0}{1}{2}{3}{4}{5}.xml", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second)
-            _sessions.Add((url, oracle, template), { Index = !_currentIndex; Username = !_username; Filename = sessionFile })
+            _sessions.Add((url, oracle, template), new SavedSession(!_currentIndex, !_username, sessionFile))
         
         let session = _sessions.[url, oracle, template]
         session.Index <- !_currentIndex

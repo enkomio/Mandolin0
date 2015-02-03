@@ -145,44 +145,58 @@ module Program =
         )
 
     let printProgressBar(username: String, totalPoint: Int32) =
-        // write the progress bar skeleton
-        let defaultProgressBarLen = 45
+        // save the current session indexes
         Console.CursorTop <- !_nextCursorTopForUsername
         incr _nextCursorTopForUsername
 
         Console.WriteLine()
-        Console.Write("{0,-10} ", username.Substring(0, min 10 username.Length))
+        let usernameLabel = String.Format("{0,-10} ", username.Substring(0, min 10 username.Length))
+        Console.Write(usernameLabel)
 
-        let index = ref 0
+        let index = ref 1
         let progressBarStartPosition = Console.CursorLeft
-        Console.Write("[")
-        Console.CursorLeft <- Console.CursorLeft + defaultProgressBarLen
-        Console.Write("]")
-        let progressBarEndPosition = Console.CursorLeft
         let savedTop = Console.CursorTop
 
         // return the callback to invoke in order to update the progress bar
-        fun (currentIndex: Int32) ->
+        fun (currentIndex: Int32) ->            
+            // save coordinate
             let top = Console.CursorTop
             Console.CursorTop <- savedTop
+
+            // create the statistic message             
             let floatScaledValue = float currentIndex / float totalPoint
-            let progressBarLeftPosition = int (floatScaledValue * float defaultProgressBarLen)
             let progressBarPercentage = int (floatScaledValue * float 100)
+            let spaceForPasswordCount = totalPoint.ToString().Length.ToString()
+            let statisticString = String.Format(" {0,3}% ({1," + spaceForPasswordCount + "}/{2,-" + spaceForPasswordCount + "})", progressBarPercentage, !index, totalPoint)
+
+            // calculate scale indexes for progress bar
+            let defaultProgressBarLen = float (Console.WindowWidth - statisticString.Length - usernameLabel.Length)
+            let progressBarLeftPosition = int (floatScaledValue * defaultProgressBarLen)
             incr index
 
+            // calcultae position for progress bar
             let cursorVisible = Console.CursorVisible
-            let newLeft = progressBarStartPosition + progressBarLeftPosition
             let savedPosition = Console.CursorLeft
 
+            // display the progressbar
+            Console.CursorLeft <- progressBarStartPosition
+            Console.Write("[")
+
             if progressBarLeftPosition > 0 then
-                // write the = character
-                Console.CursorLeft <- progressBarStartPosition + 1
-                while Console.CursorLeft <= newLeft do
+                // write the character '='
+                while Console.CursorLeft <= progressBarLeftPosition do
                     Console.Write("=")
 
-            // write the percentage
-            Console.CursorLeft <- progressBarEndPosition + 1
-            Console.Write("{0,3}% ({1,4}/{2,-4})", progressBarPercentage, !index, totalPoint)
+            // clean the progress bar
+            while Console.CursorLeft <= int defaultProgressBarLen do
+                Console.Write(" ")
+            Console.Write("]")
+
+            Console.Write(statisticString)
+
+            // clean the line till the end
+            while Console.CursorLeft < Console.WindowWidth - 1 do
+                Console.Write(" ")
 
             Console.CursorLeft <- savedPosition
             Console.CursorVisible <- cursorVisible
