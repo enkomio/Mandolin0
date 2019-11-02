@@ -1,4 +1,4 @@
-# This project is no more supported. It was replaced by: https://www.taipan.community
+# This project is no more supported. It was replaced by: <a href="https://github.com/enkomio/Taipan">https://github.com/enkomio/Taipan</a>
 
 
 
